@@ -1,6 +1,97 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma';
+import { hashPassword } from '../utils/password';
 import { AuthRequest } from '../middleware/auth';
+
+export const create = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { user, specialties, bio, hourlyRate, commissionRate, active } = req.body;
+
+    // Generate a default password (in production, you'd want to email this to the user)
+    const defaultPassword = Math.random().toString(36).slice(-8);
+    const passwordHash = await hashPassword(defaultPassword);
+
+    // Create user with STYLIST role
+    const newUser = await prisma.user.create({
+      data: {
+        email: user.email,
+        passwordHash,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone || null,
+        role: 'STYLIST',
+        active: active ?? true,
+      },
+    });
+
+    // Create stylist profile
+    const stylist = await prisma.stylist.create({
+      data: {
+        userId: newUser.id,
+        specialties: specialties || null,
+        bio: bio || null,
+        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
+        commissionRate: commissionRate ? parseFloat(commissionRate) : null,
+        active: active ?? true,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            role: true,
+            active: true,
+          },
+        },
+      },
+    });
+
+    // In production, you would email the temporary password to the stylist
+    // For now, log it (remove this in production!)
+    console.log(`Temporary password for ${user.email}: ${defaultPassword}`);
+
+    res.status(201).json(stylist);
+  } catch (error: any) {
+    console.error('Create stylist error:', error);
+
+    // Handle unique constraint violation
+    if (error.code === 'P2002') {
+      res.status(400).json({ error: 'Bad Request', message: 'Email already exists' });
+      return;
+    }
+
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to create stylist' });
+  }
+};
+
+export const remove = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const stylist = await prisma.stylist.findUnique({
+      where: { id: id as string },
+      select: { userId: true },
+    });
+
+    if (!stylist) {
+      res.status(404).json({ error: 'Not Found', message: 'Stylist not found' });
+      return;
+    }
+
+    // Delete user (cascade will delete stylist)
+    await prisma.user.delete({
+      where: { id: stylist.userId },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Delete stylist error:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to delete stylist' });
+  }
+};
 
 export const getAll = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -84,15 +175,29 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
 export const update = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { specialties, bio, hourlyRate, commissionRate, active } = req.body;
+    const { user, specialties, bio, hourlyRate, commissionRate, active } = req.body;
 
+    // First update the user if user data is provided
+    if (user) {
+      await prisma.user.update({
+        where: { id: (await prisma.stylist.findUnique({ where: { id: id as string }, select: { userId: true } }))!.userId },
+        data: {
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone || null,
+        },
+      });
+    }
+
+    // Then update the stylist profile
     const stylist = await prisma.stylist.update({
       where: { id: id as string },
       data: {
         specialties,
         bio,
-        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
-        commissionRate: commissionRate ? parseFloat(commissionRate) : undefined,
+        hourlyRate: hourlyRate !== undefined ? (hourlyRate ? parseFloat(hourlyRate) : null) : undefined,
+        commissionRate: commissionRate !== undefined ? (commissionRate ? parseFloat(commissionRate) : null) : undefined,
         active,
       },
       include: {
