@@ -53,7 +53,7 @@ services:
     ports:
       - "3001:3001"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://udock:3000
       NODE_ENV: production
     depends_on:
       - backend
