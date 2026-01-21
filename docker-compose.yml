@@ -25,6 +25,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        DATABASE_URL: postgresql://salon_user:salon_password_change_in_production@postgres:5432/salon_db?schema=public
     container_name: snip-backend
     restart: unless-stopped
     ports:

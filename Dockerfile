@@ -13,11 +13,15 @@ COPY tsconfig.json ./
 # Install dependencies
 RUN npm ci
 
+# Copy schema for Prisma client generation
+COPY prisma ./prisma/
+
+# Generate Prisma client (needs DATABASE_URL as build arg)
+ARG DATABASE_URL
+RUN npx prisma generate
+
 # Copy source code
 COPY . .
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Build TypeScript
 RUN npm run build
