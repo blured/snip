@@ -2,7 +2,7 @@ import { Response } from 'express';
 import prisma from '../utils/prisma';
 import { AuthRequest } from '../middleware/auth';
 
-export const getAll = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getAll = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const clients = await prisma.client.findMany({
       include: {

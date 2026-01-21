@@ -252,7 +252,7 @@ export const addPayment = async (req: AuthRequest, res: Response): Promise<void>
     });
 
     if (invoice) {
-      const totalPaid = invoice.payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalPaid = invoice.payments.reduce((sum: number, p: any) => sum + p.amount, 0);
 
       if (totalPaid >= invoice.total) {
         await prisma.invoice.update({

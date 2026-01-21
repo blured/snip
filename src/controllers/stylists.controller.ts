@@ -2,7 +2,7 @@ import { Response } from 'express';
 import prisma from '../utils/prisma';
 import { AuthRequest } from '../middleware/auth';
 
-export const getAll = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getAll = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const stylists = await prisma.stylist.findMany({
       where: { active: true },
@@ -144,7 +144,7 @@ export const setAvailability = async (req: AuthRequest, res: Response): Promise<
     });
 
     // Create new availability
-    const availability = await prisma.stylistAvailability.createMany({
+    await prisma.stylistAvailability.createMany({
       data: availabilityData.map((slot: any) => ({
         stylistId: id,
         dayOfWeek: slot.dayOfWeek,

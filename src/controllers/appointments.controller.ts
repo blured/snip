@@ -167,7 +167,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
         status: 'SCHEDULED',
         notes,
         services: {
-          create: services.map(service => ({
+          create: services.map((service: any) => ({
             serviceId: service.id,
             price: service.basePrice,
           })),
