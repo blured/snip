@@ -53,7 +53,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const { id } = req.params;
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         client: {
           include: {
@@ -174,7 +174,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
 
     // Get current invoice
     const currentInvoice = await prisma.invoice.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: { items: true },
     });
 
@@ -191,7 +191,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
     const total = subtotal + newTax + newTip - newDiscount;
 
     const invoice = await prisma.invoice.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         tax: newTax,
         tip: newTip,
@@ -236,7 +236,7 @@ export const addPayment = async (req: AuthRequest, res: Response): Promise<void>
 
     const payment = await prisma.payment.create({
       data: {
-        invoiceId: id,
+        invoiceId: id as string,
         amount: parseFloat(amount),
         method,
         transactionId,
@@ -247,7 +247,7 @@ export const addPayment = async (req: AuthRequest, res: Response): Promise<void>
 
     // Check if invoice is fully paid
     const invoice = await prisma.invoice.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: { payments: true },
     });
 
@@ -256,7 +256,7 @@ export const addPayment = async (req: AuthRequest, res: Response): Promise<void>
 
       if (totalPaid >= invoice.total) {
         await prisma.invoice.update({
-          where: { id },
+          where: { id: id as string },
           data: {
             status: 'PAID',
             paidAt: new Date(),
@@ -277,7 +277,7 @@ export const markAsPaid = async (req: AuthRequest, res: Response): Promise<void>
     const { id } = req.params;
 
     const invoice = await prisma.invoice.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         status: 'PAID',
         paidAt: new Date(),
@@ -315,7 +315,7 @@ export const remove = async (req: AuthRequest, res: Response): Promise<void> => 
     const { id } = req.params;
 
     await prisma.invoice.delete({
-      where: { id },
+      where: { id: id as string },
     });
 
     res.status(204).send();

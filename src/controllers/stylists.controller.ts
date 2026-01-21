@@ -39,7 +39,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const { id } = req.params;
 
     const stylist = await prisma.stylist.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         user: {
           select: {
@@ -87,7 +87,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
     const { specialties, bio, hourlyRate, commissionRate, active } = req.body;
 
     const stylist = await prisma.stylist.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         specialties,
         bio,
@@ -122,7 +122,7 @@ export const getAvailability = async (req: AuthRequest, res: Response): Promise<
     const { id } = req.params;
 
     const availability = await prisma.stylistAvailability.findMany({
-      where: { stylistId: id, active: true },
+      where: { stylistId: id as string, active: true },
       orderBy: { dayOfWeek: 'asc' },
     });
 
@@ -140,13 +140,13 @@ export const setAvailability = async (req: AuthRequest, res: Response): Promise<
 
     // Delete existing availability
     await prisma.stylistAvailability.deleteMany({
-      where: { stylistId: id },
+      where: { stylistId: id as string },
     });
 
     // Create new availability
     await prisma.stylistAvailability.createMany({
       data: availabilityData.map((slot: any) => ({
-        stylistId: id,
+        stylistId: id as string,
         dayOfWeek: slot.dayOfWeek,
         startTime: slot.startTime,
         endTime: slot.endTime,
@@ -155,7 +155,7 @@ export const setAvailability = async (req: AuthRequest, res: Response): Promise<
     });
 
     const updatedAvailability = await prisma.stylistAvailability.findMany({
-      where: { stylistId: id },
+      where: { stylistId: id as string },
       orderBy: { dayOfWeek: 'asc' },
     });
 
@@ -171,7 +171,7 @@ export const getTimeOff = async (req: AuthRequest, res: Response): Promise<void>
     const { id } = req.params;
 
     const timeOff = await prisma.stylistTimeOff.findMany({
-      where: { stylistId: id },
+      where: { stylistId: id as string },
       orderBy: { startDate: 'desc' },
     });
 
@@ -189,7 +189,7 @@ export const requestTimeOff = async (req: AuthRequest, res: Response): Promise<v
 
     const timeOff = await prisma.stylistTimeOff.create({
       data: {
-        stylistId: id,
+        stylistId: id as string,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         reason,

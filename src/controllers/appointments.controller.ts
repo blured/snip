@@ -62,7 +62,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const { id } = req.params;
 
     const appointment = await prisma.appointment.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         client: {
           include: {
@@ -217,7 +217,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
     const { scheduledStart, scheduledEnd, status, notes, actualStart, actualEnd } = req.body;
 
     const appointment = await prisma.appointment.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         scheduledStart: scheduledStart ? new Date(scheduledStart) : undefined,
         scheduledEnd: scheduledEnd ? new Date(scheduledEnd) : undefined,
@@ -270,7 +270,7 @@ export const cancel = async (req: AuthRequest, res: Response): Promise<void> => 
     const { reason } = req.body;
 
     const appointment = await prisma.appointment.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         status: 'CANCELLED',
         cancellationReason: reason,
@@ -311,7 +311,7 @@ export const remove = async (req: AuthRequest, res: Response): Promise<void> => 
     const { id } = req.params;
 
     await prisma.appointment.delete({
-      where: { id },
+      where: { id: id as string },
     });
 
     res.status(204).send();

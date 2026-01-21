@@ -43,7 +43,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const { id } = req.params;
 
     const client = await prisma.client.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         user: {
           select: {
@@ -107,7 +107,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
     const { dateOfBirth, preferredStylistId, notes, allergies, preferredProducts } = req.body;
 
     const client = await prisma.client.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
         preferredStylistId: preferredStylistId || null,
@@ -142,7 +142,7 @@ export const remove = async (req: AuthRequest, res: Response): Promise<void> => 
     const { id } = req.params;
 
     const client = await prisma.client.findUnique({
-      where: { id },
+      where: { id: id as string },
       select: { userId: true },
     });
 
@@ -168,7 +168,7 @@ export const getAppointments = async (req: AuthRequest, res: Response): Promise<
     const { id } = req.params;
 
     const appointments = await prisma.appointment.findMany({
-      where: { clientId: id },
+      where: { clientId: id as string },
       include: {
         stylist: {
           include: {
@@ -201,7 +201,7 @@ export const getInvoices = async (req: AuthRequest, res: Response): Promise<void
     const { id } = req.params;
 
     const invoices = await prisma.invoice.findMany({
-      where: { clientId: id },
+      where: { clientId: id as string },
       include: {
         items: {
           include: {

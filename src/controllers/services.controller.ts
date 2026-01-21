@@ -26,7 +26,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const { id } = req.params;
 
     const service = await prisma.service.findUnique({
-      where: { id },
+      where: { id: id as string },
     });
 
     if (!service) {
@@ -69,7 +69,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
     const { name, description, category, durationMinutes, basePrice, active } = req.body;
 
     const service = await prisma.service.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         name,
         description,
@@ -93,7 +93,7 @@ export const remove = async (req: AuthRequest, res: Response): Promise<void> => 
 
     // Soft delete by marking as inactive
     await prisma.service.update({
-      where: { id },
+      where: { id: id as string },
       data: { active: false },
     });
 
