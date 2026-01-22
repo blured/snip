@@ -160,7 +160,7 @@ export function AppointmentCalendar({
           font-family: inherit;
         }
         .fc-wrapper .fc-toolbar-title {
-          color: #111827;
+          color: #000000;
           font-size: 1.25rem;
           font-weight: 600;
         }
@@ -174,16 +174,16 @@ export function AppointmentCalendar({
         }
         .fc-wrapper .fc-col-header-cell-cushion,
         .fc-wrapper .fc-daygrid-day-number {
-          color: #374151;
+          color: #000000;
           font-weight: 500;
         }
         .fc-wrapper .fc-day-today .fc-daygrid-day-number {
-          color: #111827;
+          color: #000000;
           font-weight: 700;
         }
         .fc-wrapper .fc-timegrid-slot-label-cushion,
         .fc-wrapper .fc-timegrid-axis-cushion {
-          color: #374151;
+          color: #000000;
         }
         .fc-wrapper .fc-event-title,
         .fc-wrapper .fc-event-time {
@@ -191,11 +191,11 @@ export function AppointmentCalendar({
           font-weight: 500;
         }
         .fc-wrapper .fc-timeline-header-cell {
-          color: #374151;
+          color: #000000;
           font-weight: 500;
         }
         .fc-wrapper .fc-resource-cell {
-          color: #111827;
+          color: #000000;
           font-weight: 600;
         }
         .fc-wrapper .fc-timeline-lane .fc-timeline-events {
@@ -203,6 +203,12 @@ export function AppointmentCalendar({
         }
         .fc-wrapper .fc-timeline-slot {
           border-color: #e5e7eb;
+        }
+        .fc-wrapper .fc-timeline-slot-mini {
+          color: #000000;
+        }
+        .fc-wrapper .fc-datagrid-cell {
+          color: #000000;
         }
         /* Google Calendar-style event styling */
         .fc-wrapper .fc-event {
