@@ -77,6 +77,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+    console.log('=== LOGIN ATTEMPT ===', { email, passwordLength: password?.length });
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -96,9 +97,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
+      console.log('LOGIN FAILED: User not found', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Invalid email or password' });
       return;
     }
+
+    console.log('User found:', { email, userId: user.id, active: user.active });
 
     if (!user.active) {
       res.status(401).json({ error: 'Unauthorized', message: 'Account is inactive' });
