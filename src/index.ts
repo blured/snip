@@ -1,7 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import bodyParser from 'body-parser';
 
 // Load environment variables
 dotenv.config();
@@ -19,27 +18,6 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? true : allowedOrigins,
   credentials: true
 }));
-
-// Import routes early so we can mount them before body parsing
-import authRoutes from './routes/auth.routes';
-
-// Mount auth routes BEFORE any body parsing to prevent dot-stripping
-app.use('/api/auth', bodyParser.raw({ type: 'application/json' }), (req: Request, _res: Response, next: NextFunction) => {
-  if (req.body && req.body.length > 0) {
-    const rawString = req.body.toString();
-    console.log('RAW BODY BUFFER:', rawString);
-    console.log('HEX DUMP:', req.body.toString('hex'));
-    try {
-      const parsed = JSON.parse(rawString);
-      console.log('MANUALLY PARSED email:', parsed.email);
-      (req as any).body = parsed;
-    } catch (e) {
-      console.error('JSON parse error:', e);
-      (req as any).body = {};
-    }
-  }
-  next();
-}, authRoutes);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -59,7 +37,8 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// Import routes (authRoutes already imported above)
+// Import routes
+import authRoutes from './routes/auth.routes';
 import clientRoutes from './routes/clients.routes';
 import stylistRoutes from './routes/stylists.routes';
 import serviceRoutes from './routes/services.routes';
@@ -86,7 +65,8 @@ app.get('/api', (_req: Request, res: Response) => {
   });
 });
 
-// Mount routes (authRoutes already mounted above with custom body parser)
+// Mount routes
+app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/stylists', stylistRoutes);
 app.use('/api/services', serviceRoutes);
