@@ -70,6 +70,7 @@ export default function SchedulePage() {
       ) : (
         <AppointmentCalendar
           appointments={appointments ?? []}
+          stylists={stylists ?? []}
           stylistFilter={stylistFilter}
           onEventClick={handleEventClick}
         />

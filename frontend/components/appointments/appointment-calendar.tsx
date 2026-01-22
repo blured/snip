@@ -4,12 +4,15 @@ import { useState, useEffect, useRef } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { EventInput, EventClickArg, DatesSetArg, CalendarApi } from '@fullcalendar/core';
-import type { Appointment, AppointmentStatus } from '@/types';
+import type { EventInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
+import type { ResourceInput } from '@fullcalendar/resource';
+import type { Appointment, AppointmentStatus, Stylist } from '@/types';
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];
+  stylists?: Stylist[];
   stylistFilter?: string;
   onEventClick?: (appointment: Appointment) => void;
   onDatesChange?: (start: Date, end: Date) => void;
@@ -33,13 +36,16 @@ const STATUS_BORDER_COLORS: Record<AppointmentStatus, string> = {
   NO_SHOW: '#dc2626',
 };
 
+type ViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'resourceTimelineWeek' | 'resourceTimelineDay';
+
 export function AppointmentCalendar({
   appointments,
+  stylists = [],
   stylistFilter,
   onEventClick,
   onDatesChange,
 }: AppointmentCalendarProps) {
-  const [viewType, setViewType] = useState<'dayGridMonth' | 'timeGridWeek' | 'timeGridDay'>('timeGridWeek');
+  const [viewType, setViewType] = useState<ViewType>('resourceTimelineWeek');
   const calendarRef = useRef<FullCalendar>(null);
 
   // Update calendar view when viewType changes
@@ -50,6 +56,17 @@ export function AppointmentCalendar({
     }
   }, [viewType]);
 
+  // Filter stylists based on selection
+  const filteredStylists = stylistFilter
+    ? stylists.filter(s => s.id === stylistFilter)
+    : stylists;
+
+  // Transform stylists to FullCalendar resource format
+  const resources: ResourceInput[] = filteredStylists.map((stylist) => ({
+    id: stylist.id,
+    title: `${stylist.user.firstName} ${stylist.user.lastName}`,
+  }));
+
   // Transform appointments to FullCalendar event format
   const events: EventInput[] = appointments
     .filter((appointment) => !stylistFilter || appointment.stylistId === stylistFilter)
@@ -58,6 +75,7 @@ export function AppointmentCalendar({
       title: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
       start: appointment.scheduledStart,
       end: appointment.scheduledEnd,
+      resourceId: appointment.stylistId,
       backgroundColor: STATUS_COLORS[appointment.status],
       borderColor: STATUS_BORDER_COLORS[appointment.status],
       classNames: ['cursor-pointer', 'hover:opacity-80', 'transition-opacity'],
@@ -78,6 +96,8 @@ export function AppointmentCalendar({
       onDatesChange(arg.start, arg.end);
     }
   };
+
+  const isResourceView = viewType.startsWith('resourceTimeline');
 
   return (
     <>
@@ -116,10 +136,45 @@ export function AppointmentCalendar({
           color: #ffffff;
           font-weight: 500;
         }
+        .fc-wrapper .fc-timeline-header-cell {
+          color: #374151;
+          font-weight: 500;
+        }
+        .fc-wrapper .fc-resource-cell {
+          color: #111827;
+          font-weight: 600;
+        }
+        .fc-wrapper .fc-timeline-lane .fc-timeline-events {
+          background-color: #f9fafb;
+        }
+        .fc-wrapper .fc-timeline-slot {
+          border-color: #e5e7eb;
+        }
       `}</style>
       <div className="fc-wrapper">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex gap-2">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setViewType('resourceTimelineWeek')}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                viewType === 'resourceTimelineWeek'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Team (Week)
+            </button>
+            <button
+              onClick={() => setViewType('resourceTimelineDay')}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                viewType === 'resourceTimelineDay'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Team (Day)
+            </button>
+            <div className="w-px bg-gray-300"></div>
             <button
               onClick={() => setViewType('dayGridMonth')}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
@@ -152,7 +207,7 @@ export function AppointmentCalendar({
             </button>
           </div>
 
-          <div className="flex items-center gap-4 text-sm">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-blue-500"></div>
               <span className="text-gray-600">Scheduled</span>
@@ -176,31 +231,46 @@ export function AppointmentCalendar({
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <FullCalendar
-            ref={calendarRef}
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView={viewType}
-            events={events}
-            eventClick={handleEventClick}
-            datesSet={handleDatesSet}
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: '',
-            }}
-            height={700}
-            eventTimeFormat={{
-              hour: 'numeric',
-              minute: '2-digit',
-              meridiem: 'short',
-            }}
-            dayMaxEvents={true}
-            weekends={true}
-            editable={false}
-            selectable={false}
-          />
-        </div>
+        {isResourceView && filteredStylists.length === 0 ? (
+          <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-12">
+            <div className="text-gray-500">No stylists available</div>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, resourceTimelinePlugin, interactionPlugin]}
+              initialView={viewType}
+              events={events}
+              resources={isResourceView ? resources : undefined}
+              eventClick={handleEventClick}
+              datesSet={handleDatesSet}
+              headerToolbar={{
+                left: 'prev,next today',
+                center: 'title',
+                right: '',
+              }}
+              height={isResourceView ? Math.max(700, filteredStylists.length * 120) : 700}
+              eventTimeFormat={{
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short',
+              }}
+              dayMaxEvents={true}
+              weekends={true}
+              editable={false}
+              selectable={false}
+              resourceAreaHeaderContent="Stylist"
+              resourceAreaWidth={150}
+              slotDuration="00:30:00"
+              slotLabelFormat={{
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short',
+              }}
+            />
+          </div>
+        )}
       </div>
     </>
   );
