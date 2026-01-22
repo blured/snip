@@ -19,17 +19,16 @@ app.use(cors({
   credentials: true
 }));
 
-// Raw body parser for debugging auth requests
-app.use('/api/auth', express.raw({ type: 'application/json' }), (req, _res, next) => {
-  if (req.method === 'POST') {
-    console.log('RAW BODY:', req.body.toString());
+// JSON parser with raw body logging
+app.use(express.json({
+  verify: (req, res, buf, encoding) => {
+    if (req.path?.includes('auth') && buf && buf.length) {
+      const rawBody = buf.toString(encoding || 'utf8');
+      console.log('RAW BODY:', rawBody);
+      console.log('HEX DUMP:', buf.toString('hex'));
+    }
   }
-  // Parse the body properly
-  req.body = JSON.parse(req.body.toString());
-  next();
-});
-
-app.use(express.json());
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
