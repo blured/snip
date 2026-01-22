@@ -197,7 +197,8 @@ async function main() {
       )
     );
 
-    stylists.push(stylist);
+    // Store stylist with user info
+    stylists.push({ ...stylist, user });
     console.log(`Created stylist: ${user.firstName} ${user.lastName}`);
   }
 
@@ -233,7 +234,8 @@ async function main() {
       },
     });
 
-    clients.push(client);
+    // Store client with user info
+    clients.push({ ...client, user });
   }
 
   console.log(`Created ${clients.length} clients`);
