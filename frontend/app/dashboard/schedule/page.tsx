@@ -6,7 +6,6 @@ import { AppointmentCalendar } from '@/components/appointments/appointment-calen
 import { AppointmentModal } from '@/components/appointments/appointment-modal';
 import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments';
 import { useStylists } from '@/hooks/use-stylists';
-import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import type { Appointment } from '@/types';
 
@@ -14,7 +13,6 @@ export default function SchedulePage() {
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
   const updateAppointment = useUpdateAppointment();
-  const queryClient = useQueryClient();
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
   const [showModal, setShowModal] = useState(false);
