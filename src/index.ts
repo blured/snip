@@ -23,11 +23,17 @@ app.use(cors({
 // Workaround: Use raw body parser for auth routes to avoid dot-stripping bug in express.json()
 app.use('/api/auth', bodyParser.raw({ type: 'application/json' }), (req: Request, _res: Response, next: NextFunction) => {
   if (req.body && req.body.length > 0) {
+    const rawString = req.body.toString();
+    console.log('RAW BODY BUFFER:', rawString);
+    console.log('HEX DUMP:', req.body.toString('hex'));
     try {
-      (req as any).body = JSON.parse(req.body.toString());
+      const parsed = JSON.parse(rawString);
+      console.log('MANUALLY PARSED email:', parsed.email);
+      (req as any).body = parsed;
       // Mark body as parsed to prevent express.json() from reparsing
       (req as any)._body = true;
     } catch (e) {
+      console.error('JSON parse error:', e);
       (req as any).body = {};
     }
   }
