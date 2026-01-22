@@ -44,6 +44,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Salon Manager</CardTitle>
           <p className="text-sm text-gray-600">Sign in to your account</p>
+          <p className="text-xs text-gray-400 mt-1">v{process.env.NEXT_PUBLIC_GIT_VERSION || 'dev'}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

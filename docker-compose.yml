@@ -50,6 +50,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://salon.artistvan.com
+        NEXT_PUBLIC_GIT_VERSION: ${GIT_VERSION:-unknown}
     container_name: snip-frontend
     restart: unless-stopped
     ports:
