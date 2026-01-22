@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import type { LoginRequest } from '@/types';
 
 export function useAuth() {
-  const { user, token, isAuthenticated, setAuth, clearAuth } = useAuthStore();
+  const { user, token, isAuthenticated, setAuth, clearAuth, refetchUser } = useAuthStore();
   const router = useRouter();
 
   const login = async (credentials: LoginRequest) => {
@@ -32,5 +32,6 @@ export function useAuth() {
     isAuthenticated,
     login,
     logout,
+    refetchUser,
   };
 }
