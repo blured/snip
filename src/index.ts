@@ -19,20 +19,24 @@ app.use(cors({
   credentials: true
 }));
 
-// Workaround: Use body-parser directly for auth routes to avoid dot-stripping bug
-app.use('/api/auth', (req: Request, _res: Response, next: NextFunction) => {
-  let data = '';
-  req.on('data', chunk => { data += chunk; });
-  req.on('end', () => {
-    console.log('RAW BODY:', data);
-    try {
-      req.body = JSON.parse(data);
-      console.log('PARSED BODY email:', req.body.email);
-    } catch (e) {
-      req.body = {};
-    }
+// Workaround: Manual JSON parsing for auth routes to avoid dot-stripping bug
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  if (req.path?.startsWith('/api/auth')) {
+    let data = '';
+    req.on('data', (chunk: any) => { data += chunk; });
+    req.on('end', () => {
+      console.log('RAW BODY:', data);
+      try {
+        req.body = JSON.parse(data);
+        console.log('PARSED BODY email:', req.body.email);
+      } catch (e) {
+        req.body = {};
+      }
+      next();
+    });
+  } else {
     next();
-  });
+  }
 });
 
 app.use(express.json());
