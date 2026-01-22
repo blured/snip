@@ -21,9 +21,10 @@ app.use(cors({
 
 // JSON parser with raw body logging
 app.use(express.json({
-  verify: (req, res, buf, encoding) => {
-    if (req.path?.includes('auth') && buf && buf.length) {
-      const rawBody = buf.toString(encoding || 'utf8');
+  verify: (req: Request, _res: Response, buf, encoding) => {
+    const path = (req as any).path || req.url;
+    if (path.includes('auth') && buf && buf.length) {
+      const rawBody = buf.toString(encoding as BufferEncoding || 'utf8');
       console.log('RAW BODY:', rawBody);
       console.log('HEX DUMP:', buf.toString('hex'));
     }
