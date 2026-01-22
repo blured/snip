@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://snip-backend:3000/api/:path*',
+        destination: 'http://backend:3000/api/:path*',
       },
     ];
   },
