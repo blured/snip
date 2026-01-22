@@ -241,46 +241,79 @@ async function main() {
   console.log(`Created ${clients.length} clients`);
 
   // Create appointments for the next 30 days
-  const statuses: AppointmentStatus[] = ['SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
-  const appointmentsPerDay = 15 + Math.floor(Math.random() * 10);
+  // Track appointments per stylist per day (max 16 per stylist per day)
+  const MAX_APPOINTMENTS_PER_STYLIST_PER_DAY = 16;
+  const APPOINTMENT_DAYS = 30;
 
-  for (let day = 0; day < 30; day++) {
+  // Track: appointmentsPerDay[dayIndex][stylistId] = count
+  const appointmentsPerDay: Record<number, Record<string, number>> = {};
+
+  for (let day = 0; day < APPOINTMENT_DAYS; day++) {
     const date = addDays(new Date(), day - 7); // Start from 7 days ago
+    const dayIndex = day;
+    appointmentsPerDay[dayIndex] = {};
 
-    for (let i = 0; i < appointmentsPerDay; i++) {
-      const stylist = getRandomItem(stylists);
-      const client = getRandomItem(clients);
-      const service = getRandomItem(services);
+    // For each stylist, randomly assign 8-16 appointments
+    for (const stylist of stylists) {
+      const numAppointments = 8 + Math.floor(Math.random() * 9); // 8-16 appointments per stylist
 
-      const startTime = getRandomTime(9, 17);
-      const endTime = addHours(startTime, service.durationMinutes / 60);
+      for (let i = 0; i < numAppointments; i++) {
+        // Track count for this stylist on this day
+        if (!appointmentsPerDay[dayIndex][stylist.id]) {
+          appointmentsPerDay[dayIndex][stylist.id] = 0;
+        }
 
-      // Skip if end time is past 6PM
-      if (endTime.getHours() > 18) continue;
+        // Skip if this stylist already has max appointments
+        if (appointmentsPerDay[dayIndex][stylist.id] >= MAX_APPOINTMENTS_PER_STYLIST_PER_DAY) {
+          break;
+        }
 
-      const status = day < 7
-        ? getRandomItem(['COMPLETED', 'CANCELLED', 'NO_SHOW'] as AppointmentStatus[])
-        : getRandomItem(['SCHEDULED', 'CONFIRMED'] as AppointmentStatus[]);
+        const client = getRandomItem(clients);
+        const service = getRandomItem(services);
 
-      const appointment = await prisma.appointment.create({
-        data: {
-          clientId: client.id,
-          stylistId: stylist.id,
-          scheduledStart: startTime,
-          scheduledEnd: endTime,
-          status,
-          notes: status === 'COMPLETED' ? 'Client was happy with the result.' : undefined,
-          reminderSent: status === 'CONFIRMED' || status === 'COMPLETED',
-          services: {
-            create: {
-              serviceId: service.id,
-              price: service.basePrice,
+        // Calculate time based on appointment index (spread through the day)
+        const startHour = 9 + Math.floor((i * 60) / 60); // Spread from 9AM onwards
+        const startTime = new Date(date);
+        startTime.setHours(startHour + (i % 8), (i % 4) * 15, 0, 0);
+
+        const endTime = addHours(startTime, service.durationMinutes / 60);
+
+        // Skip if end time is past 6PM
+        if (endTime.getHours() > 18 || endTime.getDate() !== date.getDate()) {
+          continue;
+        }
+
+        const status = day < 7
+          ? getRandomItem(['COMPLETED', 'CANCELLED', 'NO_SHOW'] as AppointmentStatus[])
+          : getRandomItem(['SCHEDULED', 'CONFIRMED'] as AppointmentStatus[]);
+
+        try {
+          await prisma.appointment.create({
+            data: {
+              clientId: client.id,
+              stylistId: stylist.id,
+              scheduledStart: startTime,
+              scheduledEnd: endTime,
+              status,
+              notes: status === 'COMPLETED' ? 'Client was happy with the result.' : undefined,
+              reminderSent: status === 'CONFIRMED' || status === 'COMPLETED',
+              services: {
+                create: {
+                  serviceId: service.id,
+                  price: service.basePrice,
+                },
+              },
             },
-          },
-        },
-      });
+          });
 
-      console.log(`Created appointment: ${client.user.firstName} with ${stylist.user.firstName} on ${date.toDateString()}`);
+          appointmentsPerDay[dayIndex][stylist.id]++;
+
+          console.log(`Created appointment: ${client.user.firstName} with ${stylist.user.firstName} on ${date.toDateString()} (${appointmentsPerDay[dayIndex][stylist.id]}/${MAX_APPOINTMENTS_PER_STYLIST_PER_DAY})`);
+        } catch (error) {
+          // Skip if there's a conflict or other error
+          console.log(`Skipped appointment due to error`);
+        }
+      }
     }
   }
 
