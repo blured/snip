@@ -12,16 +12,19 @@ export const getStats = async (_req: Request, res: Response): Promise<void> => {
     // Today's appointments
     const todayAppointments = await prisma.appointment.count({
       where: {
-        date: {
+        scheduledStart: {
           gte: today,
           lt: tomorrow,
         },
       },
     });
 
-    // Active clients
-    const activeClients = await prisma.client.count({
-      where: { active: true },
+    // Active clients - users with CLIENT role who are active
+    const activeClients = await prisma.user.count({
+      where: {
+        role: 'CLIENT',
+        active: true,
+      },
     });
 
     // Active stylists
@@ -31,7 +34,7 @@ export const getStats = async (_req: Request, res: Response): Promise<void> => {
 
     // Monthly revenue - current month
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59);
 
     const paidInvoices = await prisma.invoice.findMany({
       where: {
@@ -42,12 +45,12 @@ export const getStats = async (_req: Request, res: Response): Promise<void> => {
         },
       },
       select: {
-        totalAmount: true,
+        total: true,
       },
     });
 
     const monthlyRevenue = paidInvoices.reduce(
-      (sum: number, invoice: { totalAmount: number }) => sum + invoice.totalAmount,
+      (sum: number, invoice: { total: number }) => sum + invoice.total,
       0
     );
 
@@ -69,17 +72,29 @@ export const getUpcomingAppointments = async (_req: Request, res: Response): Pro
 
     const appointments = await prisma.appointment.findMany({
       where: {
-        date: {
+        scheduledStart: {
           gte: now,
         },
       },
       include: {
-        client: true,
-        stylist: true,
-        services: true,
+        client: {
+          include: {
+            user: true,
+          },
+        },
+        stylist: {
+          include: {
+            user: true,
+          },
+        },
+        services: {
+          include: {
+            service: true,
+          },
+        },
       },
       orderBy: {
-        date: 'asc',
+        scheduledStart: 'asc',
       },
       take: 5,
     });

@@ -9,26 +9,39 @@ export interface DashboardStats {
 
 export interface UpcomingAppointment {
   id: string;
-  date: string;
+  scheduledStart: string;
   status: string;
   notes: string | null;
   client: {
     id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string | null;
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      phone: string | null;
+    };
   };
   stylist: {
     id: string;
-    firstName: string;
-    lastName: string;
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+    };
   };
   services: Array<{
     id: string;
-    name: string;
     price: number;
-    duration: number;
+    service: {
+      id: string;
+      name: string;
+      price: number;
+      durationMinutes: number;
+    };
   }>;
 }
 

@@ -132,20 +132,20 @@ export default function DashboardPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900">
-                          {appointment.client.firstName} {appointment.client.lastName}
+                          {appointment.client.user.firstName} {appointment.client.user.lastName}
                         </p>
                         <Badge variant={getStatusVariant(appointment.status)}>
                           {appointment.status}
                         </Badge>
                       </div>
                       <p className="mt-1 text-sm text-gray-600">
-                        with {appointment.stylist.firstName} {appointment.stylist.lastName}
+                        with {appointment.stylist.user.firstName} {appointment.stylist.user.lastName}
                       </p>
                       <p className="mt-1 text-xs text-gray-500">
-                        {appointment.services.map((s) => s.name).join(' • ')}
+                        {appointment.services.map((s) => s.service.name).join(' • ')}
                       </p>
                       <p className="mt-2 text-xs font-medium text-blue-600">
-                        {formatAppointmentDate(appointment.date)}
+                        {formatAppointmentDate(appointment.scheduledStart)}
                       </p>
                     </div>
                   </div>
