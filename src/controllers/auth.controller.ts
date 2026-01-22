@@ -82,7 +82,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     // If email is missing the dot but it's a known user, try with the dot
     if (email && email.includes('@') && !email.substring(0, email.lastIndexOf('@')).includes('.')) {
-      const possibleEmail = email.replace(/([a-z]+)([a-z]+@/, '$1.$2');
+      // Simple heuristic: insert a dot before the last word of the local part
+      const parts = email.split('@');
+      const localPart = parts[0];
+      const domain = parts[1];
+      // Match pattern like "fionayeates" and make it "fiona.yeates"
+      const possibleEmail = localPart.replace(/([a-z]+)([A-Z]?[a-z]+)$/, '$1.$2') + '@' + domain;
       console.log('Trying alternative email:', possibleEmail);
       // Check if this user exists
       const userWithDot = await prisma.user.findUnique({
