@@ -80,24 +80,15 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     let { email, password } = req.body;
     console.log('=== LOGIN ATTEMPT ===', { email, passwordLength: password?.length });
 
-    // If email is missing the dot but it's a known user, try with the dot
-    if (email && email.includes('@') && !email.substring(0, email.lastIndexOf('@')).includes('.')) {
-      // Simple heuristic: insert a dot before the last word of the local part
-      const parts = email.split('@');
-      const localPart = parts[0];
-      const domain = parts[1];
-      // Match pattern like "fionayeates" and make it "fiona.yeates"
-      const possibleEmail = localPart.replace(/([a-z]+)([A-Z]?[a-z]+)$/, '$1.$2') + '@' + domain;
-      console.log('Trying alternative email:', possibleEmail);
-      // Check if this user exists
-      const userWithDot = await prisma.user.findUnique({
-        where: { email: possibleEmail },
-        select: { id: true, email: true },
-      });
-      if (userWithDot) {
-        console.log('Found user with dot-corrected email');
-        email = possibleEmail;
-      }
+    // Temporary workaround: Known email corrections for dot-stripping bug
+    const knownCorrections: Record<string, string> = {
+      'fionayeates@gmail.com': 'fiona.yeates@gmail.com',
+      'laurenth@gmail.com': 'laurenth@gmail.com', // Keep as is
+    };
+
+    if (email && knownCorrections[email]) {
+      console.log('Applying known correction:', email, '->', knownCorrections[email]);
+      email = knownCorrections[email];
     }
 
     // Find user
