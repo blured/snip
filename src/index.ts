@@ -18,6 +18,17 @@ app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? true : allowedOrigins,
   credentials: true
 }));
+
+// Raw body parser for debugging auth requests
+app.use('/api/auth', express.raw({ type: 'application/json' }), (req, res, next) => {
+  if (req.method === 'POST') {
+    console.log('RAW BODY:', req.body.toString());
+  }
+  // Parse the body properly
+  req.body = JSON.parse(req.body.toString());
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
