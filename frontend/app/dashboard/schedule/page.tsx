@@ -4,13 +4,18 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { AppointmentCalendar } from '@/components/appointments/appointment-calendar';
 import { AppointmentModal } from '@/components/appointments/appointment-modal';
-import { useAppointments } from '@/hooks/use-appointments';
+import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments';
 import { useStylists } from '@/hooks/use-stylists';
+import { useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import type { Appointment } from '@/types';
 
 export default function SchedulePage() {
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
+  const updateAppointment = useUpdateAppointment();
+  const queryClient = useQueryClient();
+
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
   const [showModal, setShowModal] = useState(false);
   const [stylistFilter, setStylistFilter] = useState<string>('');
@@ -23,6 +28,23 @@ export default function SchedulePage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedAppointment(undefined);
+  };
+
+  const handleEventDrop = async (appointmentId: string, newStart: Date, newEnd: Date, newResourceId?: string) => {
+    try {
+      await updateAppointment.mutateAsync({
+        id: appointmentId,
+        data: {
+          scheduledStart: newStart.toISOString(),
+          scheduledEnd: newEnd.toISOString(),
+          ...(newResourceId && { stylistId: newResourceId }),
+        },
+      });
+      toast.success('Appointment rescheduled successfully');
+    } catch (error) {
+      toast.error('Failed to reschedule appointment');
+      throw error;
+    }
   };
 
   return (
@@ -57,6 +79,9 @@ export default function SchedulePage() {
             </option>
           ))}
         </select>
+        <div className="ml-4 text-sm text-gray-500">
+          Tip: Drag appointments to reschedule, drag edges to resize
+        </div>
       </div>
 
       {isLoading ? (
@@ -73,6 +98,7 @@ export default function SchedulePage() {
           stylists={stylists ?? []}
           stylistFilter={stylistFilter}
           onEventClick={handleEventClick}
+          onEventDrop={handleEventDrop}
         />
       )}
 

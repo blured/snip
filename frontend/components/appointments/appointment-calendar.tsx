@@ -6,7 +6,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import resourceTimelinePlugin from '@fullcalendar/resource-timeline';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { EventInput, EventClickArg, DatesSetArg } from '@fullcalendar/core';
+import type { EventInput, EventClickArg, DatesSetArg, EventDropArg } from '@fullcalendar/core';
 import type { ResourceInput } from '@fullcalendar/resource';
 import type { Appointment, AppointmentStatus, Stylist } from '@/types';
 
@@ -15,6 +15,7 @@ interface AppointmentCalendarProps {
   stylists?: Stylist[];
   stylistFilter?: string;
   onEventClick?: (appointment: Appointment) => void;
+  onEventDrop?: (appointmentId: string, newStart: Date, newEnd: Date, newResourceId?: string) => Promise<void>;
   onDatesChange?: (start: Date, end: Date) => void;
 }
 
@@ -38,14 +39,19 @@ const STATUS_BORDER_COLORS: Record<AppointmentStatus, string> = {
 
 type ViewType = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'resourceTimelineWeek' | 'resourceTimelineDay';
 
+// Can only edit appointments that are SCHEDULED, CONFIRMED, or IN_PROGRESS
+const EDITABLE_STATUSES = ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] as const;
+
 export function AppointmentCalendar({
   appointments,
   stylists = [],
   stylistFilter,
   onEventClick,
+  onEventDrop,
   onDatesChange,
 }: AppointmentCalendarProps) {
   const [viewType, setViewType] = useState<ViewType>('resourceTimelineWeek');
+  const [snapMinutes, setSnapMinutes] = useState<number>(15);
   const calendarRef = useRef<FullCalendar>(null);
 
   // Update calendar view when viewType changes
@@ -70,24 +76,72 @@ export function AppointmentCalendar({
   // Transform appointments to FullCalendar event format
   const events: EventInput[] = appointments
     .filter((appointment) => !stylistFilter || appointment.stylistId === stylistFilter)
-    .map((appointment) => ({
-      id: appointment.id,
-      title: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
-      start: appointment.scheduledStart,
-      end: appointment.scheduledEnd,
-      resourceId: appointment.stylistId,
-      backgroundColor: STATUS_COLORS[appointment.status],
-      borderColor: STATUS_BORDER_COLORS[appointment.status],
-      classNames: ['cursor-pointer', 'hover:opacity-80', 'transition-opacity'],
-      extendedProps: {
-        appointment,
-      },
-    }));
+    .map((appointment) => {
+      const isEditable = EDITABLE_STATUSES.includes(appointment.status as any);
+      return {
+        id: appointment.id,
+        title: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
+        start: appointment.scheduledStart,
+        end: appointment.scheduledEnd,
+        resourceId: appointment.stylistId,
+        backgroundColor: STATUS_COLORS[appointment.status],
+        borderColor: STATUS_BORDER_COLORS[appointment.status],
+        classNames: [
+          'cursor-pointer',
+          'hover:opacity-80',
+          'transition-opacity',
+          isEditable ? 'cursor-move' : 'cursor-pointer',
+        ],
+        editable: isEditable,
+        durationEditable: isEditable,
+        startEditable: isEditable,
+        extendedProps: {
+          appointment,
+        },
+      };
+    });
 
   const handleEventClick = (arg: EventClickArg) => {
     const appointment = arg.event.extendedProps.appointment as Appointment;
     if (onEventClick) {
       onEventClick(appointment);
+    }
+  };
+
+  const handleEventDrop = async (arg: EventDropArg) => {
+    const appointment = arg.event.extendedProps.appointment as Appointment;
+
+    // Revert the change initially (we'll update if the API call succeeds)
+    arg.revert();
+
+    if (!onEventDrop) return;
+
+    try {
+      const newStart = arg.event.start as Date;
+      const newEnd = arg.event.end as Date;
+      const newResourceId = arg.newResource?.id;
+
+      await onEventDrop(appointment.id, newStart, newEnd, newResourceId);
+    } catch (error) {
+      console.error('Failed to update appointment:', error);
+    }
+  };
+
+  const handleEventResize = async (arg: any) => {
+    const appointment = arg.event.extendedProps.appointment as Appointment;
+
+    // Revert the change initially
+    arg.revert();
+
+    if (!onEventDrop) return;
+
+    try {
+      const newStart = arg.event.start as Date;
+      const newEnd = arg.event.end as Date;
+
+      await onEventDrop(appointment.id, newStart, newEnd, appointment.stylistId);
+    } catch (error) {
+      console.error('Failed to update appointment:', error);
     }
   };
 
@@ -150,6 +204,30 @@ export function AppointmentCalendar({
         .fc-wrapper .fc-timeline-slot {
           border-color: #e5e7eb;
         }
+        /* Google Calendar-style event styling */
+        .fc-wrapper .fc-event {
+          border-radius: 4px;
+          border-left-width: 4px;
+          padding: 2px 4px;
+        }
+        .fc-wrapper .fc-event:hover {
+          opacity: 0.85;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* Drag handle cursor */
+        .fc-wrapper .fc-event.fc-event-dragging {
+          opacity: 0.7;
+        }
+        .fc-wrapper .fc-event .fc-event-resizer {
+          cursor: ns-resize;
+          width: 8px;
+        }
+        .fc-wrapper .fc-event .fc-event-resizer-start {
+          cursor: move;
+        }
+        .fc-wrapper .fc-event .fc-event-resizer-end {
+          cursor: s-resize;
+        }
       `}</style>
       <div className="fc-wrapper">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
@@ -209,6 +287,19 @@ export function AppointmentCalendar({
 
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
+              <label className="text-gray-600">Snap:</label>
+              <select
+                value={snapMinutes}
+                onChange={(e) => setSnapMinutes(Number(e.target.value))}
+                className="rounded border border-gray-300 px-2 py-1 text-sm text-gray-700 focus:border-blue-500 focus:outline-none"
+              >
+                <option value={5}>5 min</option>
+                <option value={10}>10 min</option>
+                <option value={15}>15 min</option>
+              </select>
+            </div>
+            <div className="w-px h-6 bg-gray-300"></div>
+            <div className="flex items-center gap-2">
               <div className="h-3 w-3 rounded-full bg-blue-500"></div>
               <span className="text-gray-600">Scheduled</span>
             </div>
@@ -244,6 +335,8 @@ export function AppointmentCalendar({
               events={events}
               resources={isResourceView ? resources : undefined}
               eventClick={handleEventClick}
+              eventDrop={handleEventDrop}
+              eventResize={handleEventResize}
               datesSet={handleDatesSet}
               headerToolbar={{
                 left: 'prev,next today',
@@ -258,11 +351,12 @@ export function AppointmentCalendar({
               }}
               dayMaxEvents={true}
               weekends={true}
-              editable={false}
+              editable={true}
               selectable={false}
+              snapDuration={`${snapMinutes}:00`}
+              slotDuration="00:15:00"
               resourceAreaHeaderContent="Stylist"
               resourceAreaWidth={150}
-              slotDuration="00:30:00"
               slotLabelFormat={{
                 hour: 'numeric',
                 minute: '2-digit',
