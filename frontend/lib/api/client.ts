@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Use relative URL for client-side requests to go through Next.js rewrites
+// In browser, this will use the current origin (same as frontend)
+// In server-side, we need to use the backend URL directly
+const API_URL = typeof window === 'undefined'
+  ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+  : ''; // Empty string uses relative URLs in browser
 
 export const apiClient = axios.create({
   baseURL: API_URL,
