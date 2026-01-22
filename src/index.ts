@@ -30,13 +30,16 @@ app.use('/api/auth', bodyParser.raw({ type: 'application/json' }), (req: Request
     try {
       const parsed = JSON.parse(rawString);
       console.log('MANUALLY PARSED email:', parsed.email);
+      // Store in both body and a safe property
       (req as any).body = parsed;
+      (req as any).safeBody = parsed; // Store in separate property
       // IMPORTANT: Mark request to skip body parsing
       (req as any)._body = true;
       (req as any)._parsedBody = true;
     } catch (e) {
       console.error('JSON parse error:', e);
       (req as any).body = {};
+      (req as any).safeBody = {};
     }
   }
   next();
