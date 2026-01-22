@@ -22,10 +22,13 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log('Login form submitted', { email, password: '***' });
     setLoading(true);
 
     try {
+      console.log('Calling login API...');
       await login({ email, password });
+      console.log('Login successful');
     } catch (error) {
       console.error('Login failed:', error);
     } finally {
