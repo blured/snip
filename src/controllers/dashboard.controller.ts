@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../utils/prisma';
 
-export const getStats = async (req: Request, res: Response): Promise<void> => {
+export const getStats = async (_req: Request, res: Response): Promise<void> => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -46,7 +46,10 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
       },
     });
 
-    const monthlyRevenue = paidInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    const monthlyRevenue = paidInvoices.reduce(
+      (sum: number, invoice: { totalAmount: number }) => sum + invoice.totalAmount,
+      0
+    );
 
     res.json({
       todayAppointments,
@@ -60,7 +63,7 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const getUpcomingAppointments = async (req: Request, res: Response): Promise<void> => {
+export const getUpcomingAppointments = async (_req: Request, res: Response): Promise<void> => {
   try {
     const now = new Date();
 
