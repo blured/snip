@@ -19,17 +19,23 @@ app.use(cors({
   credentials: true
 }));
 
-// JSON parser with raw body logging
-app.use(express.json({
-  verify: (req: Request, _res: Response, buf, encoding) => {
-    const path = (req as any).path || req.url;
-    if (path.includes('auth') && buf && buf.length) {
-      const rawBody = buf.toString(encoding as BufferEncoding || 'utf8');
-      console.log('RAW BODY:', rawBody);
-      console.log('HEX DUMP:', buf.toString('hex'));
+// Workaround: Use body-parser directly for auth routes to avoid dot-stripping bug
+app.use('/api/auth', (req: Request, res: Response, next: NextFunction) => {
+  let data = '';
+  req.on('data', chunk => { data += chunk; });
+  req.on('end', () => {
+    console.log('RAW BODY:', data);
+    try {
+      req.body = JSON.parse(data);
+      console.log('PARSED BODY email:', req.body.email);
+    } catch (e) {
+      req.body = {};
     }
-  }
-}));
+    next();
+  });
+});
+
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
