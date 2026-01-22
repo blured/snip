@@ -76,15 +76,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Use safeBody if available (workaround for express.json() dot-stripping bug)
-    const requestBody = (req as any).safeBody || req.body;
-    console.log('=== CONTROLLER RECEIVED ===', {
-      body: req.body,
-      safeBody: (req as any).safeBody,
-      email: req.body?.email,
-      safeEmail: requestBody?.email
-    });
-    const { email, password } = requestBody;
+    const { email, password } = req.body;
     console.log('=== LOGIN ATTEMPT ===', { email, passwordLength: password?.length });
 
     // Find user

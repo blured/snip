@@ -20,8 +20,10 @@ app.use(cors({
   credentials: true
 }));
 
-// Workaround: Use raw body parser for auth routes to avoid dot-stripping bug in express.json()
-// Mount this BEFORE express.json() so it processes auth routes first
+// Import routes early so we can mount them before body parsing
+import authRoutes from './routes/auth.routes';
+
+// Mount auth routes BEFORE any body parsing to prevent dot-stripping
 app.use('/api/auth', bodyParser.raw({ type: 'application/json' }), (req: Request, _res: Response, next: NextFunction) => {
   if (req.body && req.body.length > 0) {
     const rawString = req.body.toString();
@@ -30,29 +32,16 @@ app.use('/api/auth', bodyParser.raw({ type: 'application/json' }), (req: Request
     try {
       const parsed = JSON.parse(rawString);
       console.log('MANUALLY PARSED email:', parsed.email);
-      // Store in both body and a safe property
       (req as any).body = parsed;
-      (req as any).safeBody = parsed; // Store in separate property
-      // IMPORTANT: Mark request to skip body parsing
-      (req as any)._body = true;
-      (req as any)._parsedBody = true;
     } catch (e) {
       console.error('JSON parse error:', e);
       (req as any).body = {};
-      (req as any).safeBody = {};
     }
   }
   next();
-});
+}, authRoutes);
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  // Skip express.json() for auth routes to prevent reparsing
-  if (req.path?.startsWith('/api/auth')) {
-    console.log('Skipping express.json() for auth route, body already parsed:', (req as any).body?.email);
-    return next();
-  }
-  express.json()(req, res, next);
-});
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
@@ -70,8 +59,7 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// Import routes
-import authRoutes from './routes/auth.routes';
+// Import routes (authRoutes already imported above)
 import clientRoutes from './routes/clients.routes';
 import stylistRoutes from './routes/stylists.routes';
 import serviceRoutes from './routes/services.routes';
@@ -98,8 +86,7 @@ app.get('/api', (_req: Request, res: Response) => {
   });
 });
 
-// Mount routes
-app.use('/api/auth', authRoutes);
+// Mount routes (authRoutes already mounted above with custom body parser)
 app.use('/api/clients', clientRoutes);
 app.use('/api/stylists', stylistRoutes);
 app.use('/api/services', serviceRoutes);
