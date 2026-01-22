@@ -20,7 +20,7 @@ app.use(cors({
 }));
 
 // Raw body parser for debugging auth requests
-app.use('/api/auth', express.raw({ type: 'application/json' }), (req, res, next) => {
+app.use('/api/auth', express.raw({ type: 'application/json' }), (req, _res, next) => {
   if (req.method === 'POST') {
     console.log('RAW BODY:', req.body.toString());
   }
