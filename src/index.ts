@@ -20,7 +20,7 @@ app.use(cors({
 }));
 
 // Workaround: Use body-parser directly for auth routes to avoid dot-stripping bug
-app.use('/api/auth', (req: Request, res: Response, next: NextFunction) => {
+app.use('/api/auth', (req: Request, _res: Response, next: NextFunction) => {
   let data = '';
   req.on('data', chunk => { data += chunk; });
   req.on('end', () => {
