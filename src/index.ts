@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
 
 // Load environment variables
 dotenv.config();
@@ -19,24 +20,18 @@ app.use(cors({
   credentials: true
 }));
 
-// Workaround: Manual JSON parsing for auth routes to avoid dot-stripping bug in express.json()
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  if (req.url?.startsWith('/api/auth')) {
-    let data = '';
-    req.on('data', (chunk: any) => { data += chunk; });
-    req.on('end', () => {
-      try {
-        (req as any).body = JSON.parse(data);
-        // Mark as parsed to prevent express.json() from reparsing
-        (req as any)._body = true;
-      } catch (e) {
-        (req as any).body = {};
-      }
-      next();
-    });
-  } else {
-    next();
+// Workaround: Use raw body parser for auth routes to avoid dot-stripping bug in express.json()
+app.use('/api/auth', bodyParser.raw({ type: 'application/json' }), (req: Request, _res: Response, next: NextFunction) => {
+  if (req.body && req.body.length > 0) {
+    try {
+      (req as any).body = JSON.parse(req.body.toString());
+      // Mark body as parsed to prevent express.json() from reparsing
+      (req as any)._body = true;
+    } catch (e) {
+      (req as any).body = {};
+    }
   }
+  next();
 });
 
 app.use(express.json());
