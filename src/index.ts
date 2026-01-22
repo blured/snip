@@ -38,6 +38,7 @@ import stylistRoutes from './routes/stylists.routes';
 import serviceRoutes from './routes/services.routes';
 import appointmentRoutes from './routes/appointments.routes';
 import invoiceRoutes from './routes/invoices.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 
 // API info endpoint
 app.get('/api', (_req: Request, res: Response) => {
@@ -52,7 +53,8 @@ app.get('/api', (_req: Request, res: Response) => {
       stylists: '/api/stylists',
       services: '/api/services',
       appointments: '/api/appointments',
-      invoices: '/api/invoices'
+      invoices: '/api/invoices',
+      dashboard: '/api/dashboard'
     }
   });
 });
@@ -64,6 +66,7 @@ app.use('/api/stylists', stylistRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

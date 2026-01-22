@@ -5,3 +5,4 @@ export { clientsApi } from './clients';
 export { stylistsApi } from './stylists';
 export { servicesApi } from './services';
 export { invoicesApi } from './invoices';
+export { dashboardApi } from './dashboard';
