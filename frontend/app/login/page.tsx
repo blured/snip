@@ -19,6 +19,14 @@ export default function LoginPage() {
       sessionStorage.removeItem('login-errors');
     }
 
+    // Check for debug info
+    const debugInfo = sessionStorage.getItem('login-debug');
+    if (debugInfo) {
+      console.log('=== DEBUG INFO FROM PREVIOUS ATTEMPT ===', debugInfo);
+      setErrors([debugInfo]);
+      sessionStorage.removeItem('login-debug');
+    }
+
     // Global error handler
     const handleError = (event: ErrorEvent) => {
       const errorMessages = [...errors, event.message || String(event.error)];
@@ -54,15 +62,19 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('Login form submitted', { email, password: '***' });
+    console.log('=== LOGIN FORM SUBMITTED ===', { email, password: '***' });
+    sessionStorage.setItem('login-debug', 'form-submitted');
     setLoading(true);
 
     try {
       console.log('Calling login API...');
+      sessionStorage.setItem('login-debug', 'calling-api');
       await login({ email, password });
       console.log('Login successful');
+      sessionStorage.setItem('login-debug', 'success');
     } catch (error) {
       console.error('Login failed:', error);
+      sessionStorage.setItem('login-debug', 'error: ' + String(error));
     } finally {
       setLoading(false);
     }
