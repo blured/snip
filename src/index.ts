@@ -9,8 +9,13 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 // Middleware
+// Allow CORS from configured origins or all origins in production
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3001', 'http://udock:3001', 'http://udock.artistvan.com:3001', 'https://salon.artistvan.com'];
+
 app.use(cors({
-  origin: ['http://localhost:3001', 'http://udock:3001', 'http://udock.artistvan.com:3001'],
+  origin: process.env.NODE_ENV === 'production' ? true : allowedOrigins,
   credentials: true
 }));
 app.use(express.json());

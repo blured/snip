@@ -49,13 +49,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://udock:3000
+        NEXT_PUBLIC_API_URL: https://salon.artistvan.com
     container_name: snip-frontend
     restart: unless-stopped
     ports:
       - "3001:3001"
     environment:
-      NEXT_PUBLIC_API_URL: http://udock:3000
+      NEXT_PUBLIC_API_URL: https://salon.artistvan.com
       NODE_ENV: production
     depends_on:
       - backend
