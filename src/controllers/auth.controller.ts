@@ -77,6 +77,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+    console.log('=== LOGIN ATTEMPT ===', { email, passwordLength: password?.length });
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -96,18 +97,22 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
+      console.log('LOGIN FAILED: User not found', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Invalid email or password' });
       return;
     }
 
     if (!user.active) {
+      console.log('LOGIN FAILED: User inactive', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Account is inactive' });
       return;
     }
 
     // Verify password
     const isPasswordValid = await comparePassword(password, user.passwordHash);
+    console.log('Password validation result:', isPasswordValid);
     if (!isPasswordValid) {
+      console.log('LOGIN FAILED: Invalid password', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Invalid email or password' });
       return;
     }
@@ -122,6 +127,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Remove passwordHash from response
     const { passwordHash, ...userWithoutPassword } = user;
 
+    console.log('LOGIN SUCCESS:', { email, userId: user.id });
     res.json({ token, user: userWithoutPassword });
   } catch (error) {
     console.error('Login error:', error);
