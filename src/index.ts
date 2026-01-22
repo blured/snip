@@ -19,18 +19,16 @@ app.use(cors({
   credentials: true
 }));
 
-// Workaround: Manual JSON parsing for auth routes to avoid dot-stripping bug
+// Workaround: Manual JSON parsing for auth routes to avoid dot-stripping bug in express.json()
 app.use((req: Request, _res: Response, next: NextFunction) => {
   if (req.url?.startsWith('/api/auth')) {
     let data = '';
     req.on('data', (chunk: any) => { data += chunk; });
     req.on('end', () => {
-      console.log('RAW BODY:', data);
       try {
         (req as any).body = JSON.parse(data);
-        console.log('PARSED BODY email:', (req as any).body.email);
-        // Mark body as already parsed
-        (req as any)._bodyParsed = true;
+        // Mark as parsed to prevent express.json() from reparsing
+        (req as any)._body = true;
       } catch (e) {
         (req as any).body = {};
       }

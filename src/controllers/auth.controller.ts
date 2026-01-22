@@ -76,20 +76,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Workaround: Read body directly to avoid dot-stripping bug in express.json()
-    let { email, password } = req.body;
-    console.log('=== LOGIN ATTEMPT ===', { email, passwordLength: password?.length });
-
-    // Temporary workaround: Known email corrections for dot-stripping bug
-    const knownCorrections: Record<string, string> = {
-      'fionayeates@gmail.com': 'fiona.yeates@gmail.com',
-      'laurenth@gmail.com': 'laurenth@gmail.com', // Keep as is
-    };
-
-    if (email && knownCorrections[email]) {
-      console.log('Applying known correction:', email, '->', knownCorrections[email]);
-      email = knownCorrections[email];
-    }
+    const { email, password } = req.body;
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -109,22 +96,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
-      console.log('LOGIN FAILED: User not found', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Invalid email or password' });
       return;
     }
 
     if (!user.active) {
-      console.log('LOGIN FAILED: User inactive', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Account is inactive' });
       return;
     }
 
     // Verify password
     const isPasswordValid = await comparePassword(password, user.passwordHash);
-    console.log('Password validation result:', isPasswordValid);
     if (!isPasswordValid) {
-      console.log('LOGIN FAILED: Invalid password', { email });
       res.status(401).json({ error: 'Unauthorized', message: 'Invalid email or password' });
       return;
     }
@@ -139,7 +122,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Remove passwordHash from response
     const { passwordHash, ...userWithoutPassword } = user;
 
-    console.log('LOGIN SUCCESS:', { email, userId: user.id });
     res.json({ token, user: userWithoutPassword });
   } catch (error) {
     console.error('Login error:', error);
