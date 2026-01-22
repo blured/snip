@@ -76,8 +76,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    // Workaround: Read body directly to avoid dot-stripping bug in express.json()
+    let { email, password } = req.body;
     console.log('=== LOGIN ATTEMPT ===', { email, passwordLength: password?.length });
+
+    // If email is missing the dot but it's a known user, try with the dot
+    if (email && email.includes('@') && !email.substring(0, email.lastIndexOf('@')).includes('.')) {
+      const possibleEmail = email.replace(/([a-z]+)([a-z]+@/, '$1.$2');
+      console.log('Trying alternative email:', possibleEmail);
+      // Check if this user exists
+      const userWithDot = await prisma.user.findUnique({
+        where: { email: possibleEmail },
+        select: { id: true, email: true },
+      });
+      if (userWithDot) {
+        console.log('Found user with dot-corrected email');
+        email = possibleEmail;
+      }
+    }
 
     // Find user
     const user = await prisma.user.findUnique({

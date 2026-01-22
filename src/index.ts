@@ -21,16 +21,18 @@ app.use(cors({
 
 // Workaround: Manual JSON parsing for auth routes to avoid dot-stripping bug
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  if (req.path?.startsWith('/api/auth')) {
+  if (req.url?.startsWith('/api/auth')) {
     let data = '';
     req.on('data', (chunk: any) => { data += chunk; });
     req.on('end', () => {
       console.log('RAW BODY:', data);
       try {
-        req.body = JSON.parse(data);
-        console.log('PARSED BODY email:', req.body.email);
+        (req as any).body = JSON.parse(data);
+        console.log('PARSED BODY email:', (req as any).body.email);
+        // Mark body as already parsed
+        (req as any)._bodyParsed = true;
       } catch (e) {
-        req.body = {};
+        (req as any).body = {};
       }
       next();
     });
