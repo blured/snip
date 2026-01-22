@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Calendar,
+  CalendarDays,
   Users,
   Scissors,
   DollarSign,
@@ -16,6 +17,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Schedule', href: '/dashboard/schedule', icon: CalendarDays },
   { name: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
   { name: 'Clients', href: '/dashboard/clients', icon: Users },
   { name: 'Stylists', href: '/dashboard/stylists', icon: Scissors },
