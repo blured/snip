@@ -199,6 +199,7 @@ export default function SchedulePage() {
           stylistFilter={stylistFilter}
           onEventClick={handleEventClick}
           onEventDrop={handleEventDrop}
+          onStylistFilterChange={setStylistFilter}
         />
       )}
 
