@@ -237,14 +237,14 @@ export default function StylistDetailPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={{
-                              SCHEDULED: 'neutral',
-                              CONFIRMED: 'info',
-                              IN_PROGRESS: 'warning',
-                              COMPLETED: 'success',
-                              CANCELLED: 'danger',
-                              NO_SHOW: 'danger',
-                            }[appointment.status] || 'neutral'}>
+                            <Badge variant={
+                            (appointment.status === 'SCHEDULED' && 'neutral') ||
+                            (appointment.status === 'CONFIRMED' && 'info') ||
+                            (appointment.status === 'IN_PROGRESS' && 'warning') ||
+                            (appointment.status === 'COMPLETED' && 'success') ||
+                            ((appointment.status === 'CANCELLED' || appointment.status === 'NO_SHOW') && 'danger') ||
+                            'neutral'
+                          }>
                               {appointment.status.replace('_', ' ')}
                             </Badge>
                           </TableCell>
