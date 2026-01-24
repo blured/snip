@@ -96,7 +96,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Salon Manager</CardTitle>
           <p className="text-sm text-gray-600">Sign in to your account</p>
-          <p className="text-xs text-gray-400 mt-1">v{process.env.NEXT_PUBLIC_GIT_VERSION || 'dev'}</p>
+          <p className="text-xs text-gray-400 mt-1">v{process.env.NEXT_PUBLIC_APP_VERSION || 'dev'}</p>
           {errors.length > 0 && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded text-left">
               <p className="text-xs font-semibold text-red-800 mb-2">Errors detected:</p>
