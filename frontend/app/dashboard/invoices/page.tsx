@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { InvoiceModal } from '@/components/invoices/invoice-modal';
 import { PaymentModal } from '@/components/invoices/payment-modal';
 import { useInvoices, useDeleteInvoice, useMarkAsPaid } from '@/hooks/use-invoices';
-import { Plus, Pencil, Trash2, Search, DollarSign, Eye, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Banknote, Eye, X } from 'lucide-react';
 import type { Invoice, InvoiceStatus } from '@/types';
 import { format } from 'date-fns';
 
@@ -188,7 +188,7 @@ export default function InvoicesPage() {
                               onClick={() => { setSelectedInvoice(invoice); setShowPaymentModal(true); }}
                               title="Add Payment"
                             >
-                              <DollarSign className="h-4 w-4" />
+                              <Banknote className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -196,7 +196,7 @@ export default function InvoicesPage() {
                               onClick={() => handleMarkAsPaid(invoice)}
                               title="Mark as Paid"
                             >
-                              <DollarSign className="h-4 w-4" />
+                              <Banknote className="h-4 w-4" />
                             </Button>
                           </>
                         )}

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { StylistModal } from '@/components/stylists/stylist-modal';
 import { useStylistDetail, useDeleteStylist } from '@/hooks/use-stylists';
-import { ArrowLeft, Pencil, Trash2, Mail, Phone, Calendar, Scissors, DollarSign, User } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Mail, Phone, Calendar, Scissors, Banknote, User } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function StylistDetailPage() {
@@ -270,7 +270,7 @@ export default function StylistDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
+                <Banknote className="h-5 w-5" />
                 Rates
               </CardTitle>
             </CardHeader>
@@ -279,7 +279,7 @@ export default function StylistDetailPage() {
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">Hourly Rate</dt>
                   <dd className="text-lg font-semibold text-gray-900">
-                    {stylist.hourlyRate ? `$${stylist.hourlyRate.toFixed(2)}/hr` : 'Not set'}
+                    {stylist.hourlyRate ? `€${stylist.hourlyRate.toFixed(2)}/hr` : 'Not set'}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between">

@@ -3,7 +3,7 @@
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, DollarSign, Scissors, Clock } from 'lucide-react';
+import { Calendar, Users, Banknote, Scissors, Clock } from 'lucide-react';
 import { useDashboardStats, useUpcomingAppointments } from '@/hooks/use-dashboard';
 import { format, isToday, isTomorrow } from 'date-fns';
 
@@ -84,7 +84,7 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="flex items-center gap-4 py-6">
             <div className="rounded-full bg-purple-500 p-3">
-              <DollarSign className="h-6 w-6 text-white" />
+              <Banknote className="h-6 w-6 text-white" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
@@ -186,7 +186,7 @@ export default function DashboardPage() {
               href="/dashboard/invoices"
               className="flex items-center gap-3 rounded-lg border border-gray-200 p-4 transition-colors hover:bg-gray-50"
             >
-              <DollarSign className="h-5 w-5 text-purple-600" />
+              <Banknote className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="font-medium text-gray-900">Create Invoice</p>
                 <p className="text-sm text-gray-500">Generate a new invoice</p>

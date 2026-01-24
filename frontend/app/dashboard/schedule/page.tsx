@@ -10,7 +10,7 @@ import { useStylists } from '@/hooks/use-stylists';
 import { useDashboardStats } from '@/hooks/use-dashboard';
 import toast from 'react-hot-toast';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Users, DollarSign, Scissors, TrendingUp } from 'lucide-react';
+import { Calendar, Users, Banknote, Scissors, TrendingUp } from 'lucide-react';
 import type { Appointment } from '@/types';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 
@@ -151,7 +151,7 @@ export default function SchedulePage() {
         <Card className="border-l-4 border-teal-500">
           <CardContent className="flex items-center gap-4 py-4">
             <div className="rounded-lg bg-teal-100 p-2">
-              <DollarSign className="h-5 w-5 text-teal-600" />
+              <Banknote className="h-5 w-5 text-teal-600" />
             </div>
             <div className="flex-1">
               <p className="text-xs font-medium text-gray-500 uppercase">Revenue</p>

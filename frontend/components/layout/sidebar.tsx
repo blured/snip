@@ -7,7 +7,7 @@ import {
   CalendarDays,
   Users,
   Scissors,
-  DollarSign,
+  Receipt,
   Settings,
   LayoutDashboard,
   FileText,
@@ -22,7 +22,7 @@ const navigation = [
   { name: 'Clients', href: '/dashboard/clients', icon: Users },
   { name: 'Stylists', href: '/dashboard/stylists', icon: Scissors },
   { name: 'Services', href: '/dashboard/services', icon: FileText },
-  { name: 'Invoices', href: '/dashboard/invoices', icon: DollarSign },
+  { name: 'Invoices', href: '/dashboard/invoices', icon: Receipt },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
