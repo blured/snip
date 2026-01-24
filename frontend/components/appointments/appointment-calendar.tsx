@@ -19,8 +19,9 @@ import {
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import type { Appointment, AppointmentStatus, Stylist } from '@/types';
 
-// Register Syncfusion license for development
-registerLicense('ORg4AjUWIQA/Gnt2VVhiQlFac1pbWlHfFpVFpbWlpXCVJVFRPAH0AQEA1UVNVVVPXVNDVUdUR0c=');
+// Register Syncfusion license
+const licenseKey = process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE || 'ORg4AjUWIQA/Gnt2VVhiQlFac1pbWlHfFpVFpbWlpXCVJVFRPAH0AQEA1UVNVVVPXVNDVUdUR0c=';
+registerLicense(licenseKey);
 
 // Import Syncfusion CSS
 import '@syncfusion/ej2-base/styles/material.css';

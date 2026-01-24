@@ -229,7 +229,7 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Hourly Rate ($)
+            Hourly Rate (€)
           </label>
           <input
             type="number"

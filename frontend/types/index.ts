@@ -61,6 +61,8 @@ export interface User {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  stylistId?: string;
+  clientId?: string;
   stylist?: Stylist;
   client?: Client;
 }

@@ -154,7 +154,7 @@ export function ServiceForm({ service, onSubmit, onCancel, isLoading }: ServiceF
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">
-            Base Price ($) *
+            Base Price (€) *
           </label>
           <input
             type="number"

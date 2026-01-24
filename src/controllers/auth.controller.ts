@@ -119,10 +119,46 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       role: user.role,
     });
 
-    // Remove passwordHash from response
-    const { passwordHash, ...userWithoutPassword } = user;
+    // Fetch full user with stylist/client info
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        active: true,
+        createdAt: true,
+        updatedAt: true,
+        stylist: {
+          select: {
+            id: true,
+          },
+        },
+        client: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
 
-    res.json({ token, user: userWithoutPassword });
+    if (!fullUser) {
+      res.status(404).json({ error: 'Not Found', message: 'User not found' });
+      return;
+    }
+
+    // Remove passwordHash and add stylistId/clientId
+    const { passwordHash, ...userWithoutPassword } = fullUser;
+    const responseUser: any = {
+      ...userWithoutPassword,
+      stylistId: fullUser.stylist?.id || null,
+      clientId: fullUser.client?.id || null,
+    };
+
+    res.json({ token, user: responseUser });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal Server Error', message: 'Failed to login' });
@@ -148,8 +184,16 @@ export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<v
         active: true,
         createdAt: true,
         updatedAt: true,
-        stylist: true,
-        client: true,
+        stylist: {
+          select: {
+            id: true,
+          },
+        },
+        client: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -158,7 +202,14 @@ export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
-    res.json(user);
+    // Add stylistId or clientId to the response for easier access
+    const responseUser: any = {
+      ...user,
+      stylistId: user.stylist?.id || null,
+      clientId: user.client?.id || null,
+    };
+
+    res.json(responseUser);
   } catch (error) {
     console.error('Get current user error:', error);
     res.status(500).json({ error: 'Internal Server Error', message: 'Failed to get user' });

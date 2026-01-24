@@ -56,7 +56,7 @@ export function StylistCard({ stylist, onEdit, onDelete, onClick }: StylistCardP
               </Badge>
               {stylist.hourlyRate && (
                 <span className="text-xs font-semibold text-gray-700">
-                  ${stylist.hourlyRate.toFixed(2)}/hr
+                  €{stylist.hourlyRate.toFixed(2)}/hr
                 </span>
               )}
             </div>

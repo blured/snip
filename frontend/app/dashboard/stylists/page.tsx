@@ -323,7 +323,7 @@ export default function StylistsPage() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 {/* Min Rate Filter */}
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Min Hourly Rate ($)</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Min Hourly Rate (€)</label>
                   <Input
                     type="number"
                     min="0"
@@ -337,7 +337,7 @@ export default function StylistsPage() {
 
                 {/* Max Rate Filter */}
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">Max Hourly Rate ($)</label>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Max Hourly Rate (€)</label>
                   <Input
                     type="number"
                     min="0"
@@ -526,7 +526,7 @@ export default function StylistsPage() {
                       <TableCell>{stylist.user.phone || '-'}</TableCell>
                       <TableCell>{stylist.specialties || '-'}</TableCell>
                       <TableCell>
-                        {stylist.hourlyRate ? `$${stylist.hourlyRate.toFixed(2)}/hr` : '-'}
+                        {stylist.hourlyRate ? `€${stylist.hourlyRate.toFixed(2)}/hr` : '-'}
                       </TableCell>
                       <TableCell>
                         <Badge variant={stylist.active ? 'success' : 'neutral'}>
