@@ -6,9 +6,10 @@ import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { StylistModal } from '@/components/stylists/stylist-modal';
-import { useStylist, useDeleteStylist } from '@/hooks/use-stylists';
-import { ArrowLeft, Pencil, Trash2, Mail, Phone, Calendar, Scissors, DollarSign } from 'lucide-react';
+import { useStylistDetail, useDeleteStylist } from '@/hooks/use-stylists';
+import { ArrowLeft, Pencil, Trash2, Mail, Phone, Calendar, Scissors, DollarSign, User } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function StylistDetailPage() {
@@ -17,7 +18,7 @@ export default function StylistDetailPage() {
   const id = params.id as string;
   const [showEditModal, setShowEditModal] = useState(false);
 
-  const { data: stylist, isLoading, error } = useStylist(id);
+  const { data: stylist, isLoading, error } = useStylistDetail(id);
   const deleteStylist = useDeleteStylist();
 
   const handleDelete = async () => {
@@ -67,104 +68,191 @@ export default function StylistDetailPage() {
           Back to Stylists
         </Button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{stylistName}</h1>
-            <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
-              {stylist.user.email && (
-                <div className="flex items-center gap-1">
-                  <Mail className="h-4 w-4" />
-                  {stylist.user.email}
+        {/* Profile Header */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex flex-col gap-6 md:flex-row">
+              {/* Photo */}
+              <div className="flex-shrink-0">
+                {stylist.photo ? (
+                  <img
+                    src={stylist.photo}
+                    alt={stylistName}
+                    className="h-32 w-32 rounded-full object-cover shadow-lg"
+                  />
+                ) : (
+                  <div className="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-4xl font-bold text-white shadow-lg">
+                    {stylist.user.firstName[0]}{stylist.user.lastName[0]}
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1">
+                <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">{stylistName}</h1>
+                    <p className="text-gray-600">
+                      {stylist.specialties || 'Professional Stylist'}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowEditModal(true)}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      onClick={handleDelete}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
-              )}
-              {stylist.user.phone && (
-                <div className="flex items-center gap-1">
-                  <Phone className="h-4 w-4" />
-                  {stylist.user.phone}
+
+                {/* Contact Info */}
+                <div className="mb-4 flex flex-col gap-2 text-sm text-gray-600 md:flex-row md:gap-6">
+                  {stylist.user.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>{stylist.user.email}</span>
+                    </div>
+                  )}
+                  {stylist.user.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      <span>{stylist.user.phone}</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              <Badge variant={stylist.active ? 'success' : 'neutral'}>
-                {stylist.active ? 'Active' : 'Inactive'}
-              </Badge>
+
+                {/* Bio */}
+                {stylist.bio && (
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h3 className="mb-2 font-semibold text-gray-900">About</h3>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{stylist.bio}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="flex flex-col gap-4 md:w-48">
+                <div className="rounded-lg bg-blue-50 p-4">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {stylist.appointments?.length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Total Appointments</div>
+                </div>
+                <div className="rounded-lg bg-green-50 p-4">
+                  <div className="text-2xl font-bold text-green-600">
+                    {stylist.appointments?.filter(a => a.status === 'COMPLETED').length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Completed</div>
+                </div>
+                <div className="rounded-lg bg-purple-50 p-4">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {stylist.appointments?.filter(a =>
+                      a.status === 'SCHEDULED' || a.status === 'CONFIRMED'
+                    ).length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Upcoming</div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setShowEditModal(true)}
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Stylist Information */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Contact Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{stylist.user.email || '-'}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-gray-500">Phone</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{stylist.user.phone || '-'}</dd>
-                </div>
-              </dl>
-            </CardContent>
-          </Card>
-
-          {/* Professional Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Scissors className="h-5 w-5" />
-                Professional Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="space-y-4">
-                {stylist.specialties && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Specialties</dt>
-                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{stylist.specialties}</dd>
-                  </div>
-                )}
-                {stylist.bio && (
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Bio</dt>
-                    <dd className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{stylist.bio}</dd>
-                  </div>
-                )}
-              </dl>
-            </CardContent>
-          </Card>
-
-          {/* Schedule & Availability */}
+        {/* Appointments */}
+        <div className="lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Schedule & Availability
+                Appointments ({stylist.appointments?.length || 0})
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-500">Availability management coming soon.</p>
+            <CardContent className="p-0">
+              {!stylist.appointments || stylist.appointments.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Calendar className="mb-4 h-12 w-12 text-gray-300" />
+                  <p className="text-gray-500">No appointments yet</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date & Time</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Services</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stylist.appointments
+                      .sort((a, b) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime())
+                      .map((appointment) => (
+                        <TableRow
+                          key={appointment.id}
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => router.push(`/dashboard/appointments/${appointment.id}`)}
+                        >
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {format(new Date(appointment.scheduledStart), 'MMM d, yyyy')}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {format(new Date(appointment.scheduledStart), 'h:mm a')} - {format(new Date(appointment.scheduledEnd), 'h:mm a')}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {appointment.client.user.firstName} {appointment.client.user.lastName}
+                              </div>
+                              <div className="text-sm text-gray-500">{appointment.client.user.email}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {appointment.services && appointment.services.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {appointment.services.map((as) => (
+                                  <span
+                                    key={as.id}
+                                    className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700"
+                                  >
+                                    {as.service.name}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={{
+                              SCHEDULED: 'neutral',
+                              CONFIRMED: 'info',
+                              IN_PROGRESS: 'warning',
+                              COMPLETED: 'success',
+                              CANCELLED: 'danger',
+                              NO_SHOW: 'danger',
+                            }[appointment.status] || 'neutral'}>
+                              {appointment.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -200,12 +288,12 @@ export default function StylistDetailPage() {
           {/* Quick Stats */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
+              <CardTitle>Status</CardTitle>
             </CardHeader>
             <CardContent>
               <dl className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <dt className="text-sm text-gray-600">Status</dt>
+                  <dt className="text-sm text-gray-600">Account Status</dt>
                   <dd>
                     <Badge variant={stylist.active ? 'success' : 'neutral'}>
                       {stylist.active ? 'Active' : 'Inactive'}

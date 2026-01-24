@@ -20,6 +20,7 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
     },
     specialties: stylist?.specialties || '',
     bio: stylist?.bio || '',
+    photo: stylist?.photo || '',
     hourlyRate: stylist?.hourlyRate || '',
     commissionRate: stylist?.commissionRate || '',
     active: stylist?.active ?? true,
@@ -57,6 +58,7 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
       user: formData.user,
       specialties: formData.specialties || undefined,
       bio: formData.bio || undefined,
+      photo: formData.photo || undefined,
       active: formData.active,
     };
 
@@ -138,6 +140,20 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
         disabled={isLoading}
         placeholder="(555) 123-4567"
       />
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Photo URL
+        </label>
+        <input
+          type="url"
+          value={formData.photo}
+          onChange={(e) => handleChange('photo', e.target.value)}
+          disabled={isLoading}
+          placeholder="https://example.com/photo.jpg"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        />
+      </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">

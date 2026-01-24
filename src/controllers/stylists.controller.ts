@@ -5,7 +5,7 @@ import { AuthRequest } from '../middleware/auth';
 
 export const create = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { user, specialties, bio, hourlyRate, commissionRate, active } = req.body;
+    const { user, photo, specialties, bio, hourlyRate, commissionRate, active } = req.body;
 
     // Generate a default password (in production, you'd want to email this to the user)
     const defaultPassword = Math.random().toString(36).slice(-8);
@@ -28,6 +28,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
     const stylist = await prisma.stylist.create({
       data: {
         userId: newUser.id,
+        photo: photo || null,
         specialties: specialties || null,
         bio: bio || null,
         hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
@@ -175,7 +176,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
 export const update = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { user, specialties, bio, hourlyRate, commissionRate, active } = req.body;
+    const { user, photo, specialties, bio, hourlyRate, commissionRate, active } = req.body;
 
     // First update the user if user data is provided
     if (user) {
@@ -194,6 +195,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
     const stylist = await prisma.stylist.update({
       where: { id: id as string },
       data: {
+        photo: photo !== undefined ? photo : undefined,
         specialties,
         bio,
         hourlyRate: hourlyRate !== undefined ? (hourlyRate ? parseFloat(hourlyRate) : null) : undefined,

@@ -20,6 +20,14 @@ export function useStylist(id: string) {
   });
 }
 
+export function useStylistDetail(id: string | null) {
+  return useQuery({
+    queryKey: [...STYLISTS_QUERY_KEY, id, 'detail'],
+    queryFn: () => stylistsApi.getByIdWithAppointments(id!),
+    enabled: !!id,
+  });
+}
+
 export function useCreateStylist() {
   const queryClient = useQueryClient();
 

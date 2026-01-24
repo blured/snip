@@ -12,6 +12,11 @@ export const stylistsApi = {
     return response.data;
   },
 
+  getByIdWithAppointments: async (id: string): Promise<Stylist> => {
+    const response = await apiClient.get(`/api/stylists/${id}?include=appointments`);
+    return response.data;
+  },
+
   create: async (data: Partial<Stylist>): Promise<Stylist> => {
     const response = await apiClient.post('/api/stylists', data);
     return response.data;

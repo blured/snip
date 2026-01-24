@@ -17,16 +17,50 @@ const lastNames = [
 ];
 
 const stylistFirstNames = ['Sarah', 'Mike', 'Jessica', 'David', 'Emily', 'Chris', 'Ashley', 'Ryan'];
-const specialties = [
-  'Hair coloring, Balayage, Highlights',
-  'Haircuts, Styling, Men\'s grooming',
-  'Bridal styling, Updos, Special occasions',
-  'Hair treatment, Keratin, Deep conditioning',
-  'Curly hair specialist, Textured hair',
-  'Short hair, Pixie cuts, Modern styles',
-  'Long hair, Layering, Texture',
-  'Color correction, Fashion colors'
-];
+
+// Detailed stylist profiles with photos and bios
+const stylistProfiles: Record<string, { photo: string; bio: string; specialties: string }> = {
+  Sarah: {
+    photo: 'https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=400&h=400&fit=crop&crop=face',
+    bio: 'Sarah is our master colorist with over 12 years of experience specializing in balayage, highlights, and color correction. She trained at the prestigious Vidal Sassoon Academy and continues to stay current with the latest color techniques through annual workshops. Sarah has a passion for creating natural, lived-in blondes and specializes in corrective color for challenging situations.',
+    specialties: 'Hair coloring, Balayage, Highlights, Color correction'
+  },
+  Mike: {
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+    bio: 'Mike brings 8 years of expertise in men\'s grooming and precision haircuts. His background includes training at American Crew and extensive experience with modern fades, classic cuts, and beard styling. Mike takes pride in his attention to detail and ability to translate each client\'s personal style into a polished, professional look.',
+    specialties: 'Haircuts, Styling, Men\'s grooming, Fades, Beard styling'
+  },
+  Jessica: {
+    photo: 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=400&h=400&fit=crop&crop=face',
+    bio: 'Jessica is our bridal and special occasion specialist with 10 years of experience creating stunning updos and formal styles. A graduate of Paul Mitchell Academy, she has worked on countless weddings, proms, and red carpet events. Jessica excels at romantic, ethereal styles and enjoys collaborating with clients to bring their vision to life for their special day.',
+    specialties: 'Bridal styling, Updos, Special occasions, Formal styling'
+  },
+  David: {
+    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face',
+    bio: 'David is a hair treatment specialist with 15 years of experience focused on restoring and maintaining healthy hair. He is certified in keratin treatments, Brazilian blowouts, and advanced scalp therapies. David takes a holistic approach to hair care, considering lifestyle, hair history, and individual needs to recommend the most effective treatments for each client.',
+    specialties: 'Hair treatment, Keratin, Deep conditioning, Scalp therapy, Brazilian blowout'
+  },
+  Emily: {
+    photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
+    bio: 'Emily is our curly hair expert with 9 years of experience celebrating and enhancing natural textures. As a curly-haired stylist herself, she understands the unique challenges and beauty of textured hair. Emily has completed advanced training with DevaCurl and specializes in cutting, styling, and educating clients on how to embrace and care for their natural curls.',
+    specialties: 'Curly hair specialist, Textured hair, Deva cuts, Natural styling'
+  },
+  Chris: {
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face',
+    bio: 'Chris is known for his creative approach to short hair with 7 years of experience crafting modern pixie cuts, bobs, and edgy styles. His fashion-forward aesthetic and precision cutting techniques have earned him a loyal following among clients looking for bold, statement-making cuts. Chris loves helping clients transform their look and discover new confidence through their hair.',
+    specialties: 'Short hair, Pixie cuts, Modern styles, Bobs, Precision cutting'
+  },
+  Ashley: {
+    photo: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
+    bio: 'Ashley specializes in long hair artistry with 11 years of experience creating beautiful layers, texture, and movement. Her expertise includes face-framing techniques, dimensional color placement, and styles that enhance long hair\'s natural beauty. Ashley has a gentle, patient approach and enjoys building long-term relationships with her clients as they grow their hair.',
+    specialties: 'Long hair, Layering, Texture, Face-framing, Dimensional color'
+  },
+  Ryan: {
+    photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face',
+    bio: 'Ryan is our creative colorist with 6 years of experience pushing boundaries with fashion colors, vivid hues, and creative color techniques. Trained in the latest color trends and formulations, Ryan loves helping clients express their personality through bold, unique color choices. From pastel dreams to vibrant rainbows, Ryan brings creativity and technical precision to every color service.',
+    specialties: 'Color correction, Fashion colors, Vivid hues, Creative color, Pastels'
+  }
+};
 
 const serviceCategories = ['Haircut', 'Color', 'Styling', 'Treatment', 'Consultation'];
 const serviceNames = [
@@ -128,6 +162,7 @@ async function main() {
     const firstName = stylistFirstNames[i];
     const lastName = getRandomItem(lastNames);
     const email = `${firstName.toLowerCase()}@salon.com`;
+    const profile = stylistProfiles[firstName];
 
     const user = await prisma.user.upsert({
       where: { email },
@@ -148,8 +183,9 @@ async function main() {
       update: {},
       create: {
         userId: user.id,
-        specialties: getRandomItem(specialties),
-        bio: `Professional stylist with ${5 + Math.floor(Math.random() * 10)} years of experience.`,
+        photo: profile?.photo,
+        specialties: profile?.specialties,
+        bio: profile?.bio,
         hourlyRate: 25 + Math.random() * 15,
         commissionRate: 0.3 + Math.random() * 0.2,
         active: true,

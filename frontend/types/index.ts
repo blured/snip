@@ -77,6 +77,7 @@ export interface Stylist {
   userId: string;
   specialties?: string;
   bio?: string;
+  photo?: string;
   hourlyRate?: number;
   commissionRate?: number;
   active: boolean;
