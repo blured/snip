@@ -44,6 +44,7 @@ interface AppointmentCalendarProps {
     newResourceId?: string
   ) => Promise<void>;
   onStylistFilterChange?: (stylistId: string) => void;
+  onAppointmentCreate?: (data: { startTime: Date; endTime: Date; stylistId?: string }) => void;
 }
 
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
@@ -92,6 +93,7 @@ export function AppointmentCalendar({
   onEventClick,
   onEventDrop,
   onStylistFilterChange,
+  onAppointmentCreate,
 }: AppointmentCalendarProps) {
   const scheduleObj = React.useRef<any>(null);
 
@@ -151,12 +153,26 @@ export function AppointmentCalendar({
     });
 
   const onActionBegin = (args: any) => {
+    // Allow event creation through UI
     if (args.requestType === 'eventCreate') {
-      args.cancel = true;
+      // Don't cancel - let the creation proceed
+      // We'll handle it in actionComplete
     }
   };
 
   const onActionComplete = async (args: any) => {
+    // Handle new appointment creation
+    if (args.requestType === 'eventCreate' && args.data && onAppointmentCreate) {
+      const newEvent: AppointmentData = Array.isArray(args.data) ? args.data[0] : args.data;
+      onAppointmentCreate({
+        startTime: new Date(newEvent.StartTime),
+        endTime: new Date(newEvent.EndTime),
+        stylistId: newEvent.StylistId,
+      });
+      return;
+    }
+
+    // Handle drag and drop / resize
     const validTypes = ['eventChange', 'eventRemoved', 'eventDragged', 'eventResized'];
     if (validTypes.includes(args.requestType) && args.data) {
       const changedData: AppointmentData = Array.isArray(args.data)
@@ -179,14 +195,27 @@ export function AppointmentCalendar({
   };
 
   const onPopupOpen = (args: any) => {
-    if (args.type === 'Editor') {
+    // Handle clicking on existing appointments
+    if (args.type === 'Editor' && args.data?.Id) {
       args.cancel = true;
-      if (onEventClick && args.data?.Id) {
+      if (onEventClick) {
         const appointment = appointments.find((a) => a.id === args.data.Id);
         if (appointment) {
           onEventClick(appointment);
         }
       }
+      return;
+    }
+
+    // Handle clicking on empty slots to create new appointment
+    if (args.type === 'Editor' && !args.data?.Id && onAppointmentCreate) {
+      args.cancel = true;
+      const cellData = args.data;
+      onAppointmentCreate({
+        startTime: new Date(cellData.StartTime || cellData.startTime),
+        endTime: new Date(cellData.EndTime || cellData.endTime),
+        stylistId: cellData.StylistId || stylistFilter || undefined,
+      });
     }
   };
 

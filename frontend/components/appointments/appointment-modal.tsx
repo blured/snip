@@ -3,17 +3,25 @@ import { AppointmentForm } from './appointment-form';
 import { useCreateAppointment, useUpdateAppointment } from '@/hooks/use-appointments';
 import type { Appointment } from '@/types';
 
+interface NewAppointmentData {
+  startTime: Date;
+  endTime: Date;
+  stylistId?: string;
+}
+
 interface AppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   appointment?: Appointment;
+  newAppointmentData?: NewAppointmentData | null;
 }
 
-export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentModalProps) {
+export function AppointmentModal({ isOpen, onClose, appointment, newAppointmentData }: AppointmentModalProps) {
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
 
   const isEdit = !!appointment;
+  const isFromCalendar = !!newAppointmentData && !isEdit;
 
   const handleSubmit = async (data: any) => {
     try {
@@ -36,6 +44,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
     >
       <AppointmentForm
         appointment={appointment}
+        newAppointmentData={isFromCalendar ? newAppointmentData : undefined}
         onSubmit={handleSubmit}
         onCancel={onClose}
         isLoading={createAppointment.isPending || updateAppointment.isPending}

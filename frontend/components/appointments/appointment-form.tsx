@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useClients } from '@/hooks/use-clients';
@@ -6,14 +6,21 @@ import { useStylists } from '@/hooks/use-stylists';
 import { useServices } from '@/hooks/use-services';
 import type { Appointment } from '@/types';
 
+interface NewAppointmentData {
+  startTime: Date;
+  endTime: Date;
+  stylistId?: string;
+}
+
 interface AppointmentFormProps {
   appointment?: Appointment;
+  newAppointmentData?: NewAppointmentData;
   onSubmit: (data: any) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
-export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: AppointmentFormProps) {
+export function AppointmentForm({ appointment, newAppointmentData, onSubmit, onCancel, isLoading }: AppointmentFormProps) {
   const { data: clients } = useClients();
   const { data: stylists } = useStylists();
   const { data: services } = useServices();
@@ -33,6 +40,19 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
       : '',
     notes: appointment?.notes || '',
   });
+
+  // Pre-fill form when clicking on calendar
+  useEffect(() => {
+    if (newAppointmentData && !appointment) {
+      setFormData({
+        clientId: '',
+        stylistId: newAppointmentData.stylistId || '',
+        scheduledStart: new Date(newAppointmentData.startTime).toISOString().slice(0, 16),
+        scheduledEnd: new Date(newAppointmentData.endTime).toISOString().slice(0, 16),
+        notes: '',
+      });
+    }
+  }, [newAppointmentData, appointment]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 

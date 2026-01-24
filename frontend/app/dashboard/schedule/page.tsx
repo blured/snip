@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { AppointmentCalendar } from '@/components/appointments/appointment-calendar';
 import { AppointmentModal } from '@/components/appointments/appointment-modal';
@@ -9,7 +10,15 @@ import { useStylists } from '@/hooks/use-stylists';
 import toast from 'react-hot-toast';
 import type { Appointment } from '@/types';
 
+// For creating new appointments from calendar clicks
+interface NewAppointmentData {
+  startTime: Date;
+  endTime: Date;
+  stylistId?: string;
+}
+
 export default function SchedulePage() {
+  const router = useRouter();
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
   const updateAppointment = useUpdateAppointment();
@@ -17,15 +26,18 @@ export default function SchedulePage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
   const [showModal, setShowModal] = useState(false);
   const [stylistFilter, setStylistFilter] = useState<string>('');
+  const [newAppointmentData, setNewAppointmentData] = useState<NewAppointmentData | null>(null);
 
   const handleEventClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowModal(true);
+    setNewAppointmentData(null);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedAppointment(undefined);
+    setNewAppointmentData(null);
   };
 
   const handleEventDrop = async (appointmentId: string, newStart: Date, newEnd: Date, newResourceId?: string) => {
@@ -43,6 +55,12 @@ export default function SchedulePage() {
       toast.error('Failed to reschedule appointment');
       throw error;
     }
+  };
+
+  const handleAppointmentCreate = (data: NewAppointmentData) => {
+    setNewAppointmentData(data);
+    setSelectedAppointment(undefined);
+    setShowModal(true);
   };
 
   return (
@@ -64,6 +82,7 @@ export default function SchedulePage() {
           onEventClick={handleEventClick}
           onEventDrop={handleEventDrop}
           onStylistFilterChange={setStylistFilter}
+          onAppointmentCreate={handleAppointmentCreate}
         />
       )}
 
@@ -71,6 +90,7 @@ export default function SchedulePage() {
         isOpen={showModal}
         onClose={handleCloseModal}
         appointment={selectedAppointment}
+        newAppointmentData={newAppointmentData}
       />
     </DashboardLayout>
   );
