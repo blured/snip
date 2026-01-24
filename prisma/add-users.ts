@@ -28,24 +28,21 @@ async function main() {
   });
   console.log('✓ Created/updated admin user:', laurent.email);
 
-  // Create Fiona (Client)
+  // Create Fiona (Admin) - update role if exists
   const fionaPassword = await hashPassword('orlalaurent');
   const fiona = await prisma.user.upsert({
     where: { email: 'fiona.yeates@gmail.com' },
-    update: {},
+    update: { role: 'ADMIN' },
     create: {
       email: 'fiona.yeates@gmail.com',
       passwordHash: fionaPassword,
       firstName: 'Fiona',
       lastName: 'Yeates',
-      role: 'CLIENT',
+      role: 'ADMIN',
       active: true,
-      client: {
-        create: {},
-      },
     },
   });
-  console.log('✓ Created/updated client user:', fiona.email);
+  console.log('✓ Created/updated admin user:', fiona.email);
 
   // Create Stylist
   const stylistPassword = await hashPassword('stylist');
@@ -66,11 +63,31 @@ async function main() {
   });
   console.log('✓ Created/updated stylist user:', stylist.email);
 
+  // Create Martha (Client)
+  const marthaPassword = await hashPassword('martha');
+  const martha = await prisma.user.upsert({
+    where: { email: 'martha.oconnel@artistvan.com' },
+    update: {},
+    create: {
+      email: 'martha.oconnel@artistvan.com',
+      passwordHash: marthaPassword,
+      firstName: 'Martha',
+      lastName: 'O\'Connel',
+      role: 'CLIENT',
+      active: true,
+      client: {
+        create: {},
+      },
+    },
+  });
+  console.log('✓ Created/updated client user:', martha.email);
+
   console.log('\n✅ All users added successfully!');
   console.log('\nLogin credentials:');
   console.log('1. Admin:    laurenth@gmail.com / laurent');
-  console.log('2. Client:   fiona.yeates@gmail.com / orlalaurent');
+  console.log('2. Admin:    fiona.yeates@gmail.com / orlalaurent');
   console.log('3. Stylist:  stylist@artistvan.com / stylist');
+  console.log('4. Client:   martha.oconnel@artistvan.com / martha');
 }
 
 main()
