@@ -65,7 +65,7 @@ export default function StylistAppointmentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {stylistAppointments.map((apt: any) => (
+              {stylistAppointments?.map((apt: any) => (
                 <TableRow key={apt.id}>
                   <TableCell>
                     <div>
