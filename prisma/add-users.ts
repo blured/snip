@@ -28,11 +28,11 @@ async function main() {
   });
   console.log('✓ Created/updated admin user:', laurent.email);
 
-  // Create Fiona (Admin) - update role if exists
+  // Create Fiona (Admin) - update role and password if exists
   const fionaPassword = await hashPassword('orlalaurent');
   const fiona = await prisma.user.upsert({
     where: { email: 'fiona.yeates@gmail.com' },
-    update: { role: 'ADMIN' },
+    update: { role: 'ADMIN', passwordHash: fionaPassword },
     create: {
       email: 'fiona.yeates@gmail.com',
       passwordHash: fionaPassword,
