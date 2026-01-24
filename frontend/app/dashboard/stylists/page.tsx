@@ -9,12 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { StylistModal } from '@/components/stylists/stylist-modal';
+import { StylistCard } from '@/components/stylists/stylist-card';
 import { useStylists, useDeleteStylist } from '@/hooks/use-stylists';
-import { Plus, Pencil, Trash2, Search, CheckSquare, Square, ChevronUp, ChevronDown, ChevronsUpDown, Filter, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, CheckSquare, Square, ChevronUp, ChevronDown, ChevronsUpDown, Filter, XCircle, List, LayoutGrid } from 'lucide-react';
 import type { Stylist } from '@/types';
 
 type SortColumn = 'name' | 'email' | 'phone' | 'specialties' | 'rate' | 'status' | null;
 type SortDirection = 'asc' | 'desc' | null;
+type ViewMode = 'card' | 'table';
 
 interface StylistFilters {
   search: string;
@@ -31,6 +33,7 @@ export default function StylistsPage() {
   const [selectedStylist, setSelectedStylist] = useState<Stylist | undefined>();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('card');
 
   // Filter state
   const [filters, setFilters] = useState<StylistFilters>({
@@ -205,6 +208,10 @@ export default function StylistsPage() {
     }
   };
 
+  const handleCardClick = (stylist: Stylist) => {
+    router.push(`/dashboard/stylists/${stylist.id}`);
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-8 flex items-center justify-between">
@@ -225,6 +232,51 @@ export default function StylistsPage() {
               All Stylists ({filteredAndSortedStylists.length} of {stylists?.length ?? 0})
             </CardTitle>
             <div className="flex gap-3">
+              {/* View Toggle */}
+              <div className="flex items-center rounded-lg border border-gray-200 p-1">
+                <button
+                  onClick={() => setViewMode('card')}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    viewMode === 'card'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  title="Card View"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                    viewMode === 'table'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  title="Table View"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Only show bulk select in table mode */}
+              {viewMode === 'table' && isSomeSelected && (
+                <div className="flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-1.5">
+                  <span className="text-sm font-medium text-blue-900">
+                    {selectedIds.size} selected
+                  </span>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={handleDeleteSelected}
+                    disabled={deleteStylist.isPending}
+                    className="h-7 gap-1"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
+                  </Button>
+                </div>
+              )}
+
               <Button
                 variant="secondary"
                 size="sm"
@@ -313,26 +365,8 @@ export default function StylistsPage() {
               </div>
             </div>
           )}
-
-          {isSomeSelected && (
-            <div className="mt-4 flex items-center justify-between rounded-lg bg-blue-50 p-3">
-              <span className="text-sm font-medium text-blue-900">
-                {selectedIds.size} stylist{selectedIds.size > 1 ? 's' : ''} selected
-              </span>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={handleDeleteSelected}
-                disabled={deleteStylist.isPending}
-                className="gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete Selected
-              </Button>
-            </div>
-          )}
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-gray-500">Loading stylists...</div>
@@ -356,157 +390,173 @@ export default function StylistsPage() {
                 </Button>
               )}
             </div>
+          ) : viewMode === 'card' ? (
+            /* Card View */
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {filteredAndSortedStylists.map((stylist) => (
+                <StylistCard
+                  key={stylist.id}
+                  stylist={stylist}
+                  onEdit={(s) => { setSelectedStylist(s); setShowModal(true); }}
+                  onDelete={handleDelete}
+                  onClick={handleCardClick}
+                />
+              ))}
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <button
-                      onClick={handleSelectAll}
-                      className="flex items-center justify-center"
-                      disabled={filteredAndSortedStylists.length === 0}
-                    >
-                      {isAllSelected ? (
-                        <CheckSquare className="h-5 w-5 text-blue-600" />
-                      ) : (
-                        <Square className="h-5 w-5 text-gray-400" />
-                      )}
-                    </button>
-                  </TableHead>
-                  <TableHead>Photo</TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort('name')}
-                      className="flex items-center gap-1 hover:text-gray-900"
-                    >
-                      Name
-                      {getSortIcon('name')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort('email')}
-                      className="flex items-center gap-1 hover:text-gray-900"
-                    >
-                      Email
-                      {getSortIcon('email')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort('phone')}
-                      className="flex items-center gap-1 hover:text-gray-900"
-                    >
-                      Phone
-                      {getSortIcon('phone')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort('specialties')}
-                      className="flex items-center gap-1 hover:text-gray-900"
-                    >
-                      Specialties
-                      {getSortIcon('specialties')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort('rate')}
-                      className="flex items-center gap-1 hover:text-gray-900"
-                    >
-                      Hourly Rate
-                      {getSortIcon('rate')}
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
-                      onClick={() => handleSort('status')}
-                      className="flex items-center gap-1 hover:text-gray-900"
-                    >
-                      Status
-                      {getSortIcon('status')}
-                    </button>
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedStylists.map((stylist) => (
-                  <TableRow
-                    key={stylist.id}
-                    className={selectedIds.has(stylist.id) ? 'bg-blue-50' : ''}
-                    onClick={(e) => {
-                      if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input') || (e.target as HTMLElement).closest('select')) {
-                        return;
-                      }
-                      router.push(`/dashboard/stylists/${stylist.id}`);
-                    }}
-                  >
-                    <TableCell>
+            /* Table View */
+            <div className="rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
                       <button
-                        onClick={() => handleSelectOne(stylist.id)}
+                        onClick={handleSelectAll}
                         className="flex items-center justify-center"
+                        disabled={filteredAndSortedStylists.length === 0}
                       >
-                        {selectedIds.has(stylist.id) ? (
+                        {isAllSelected ? (
                           <CheckSquare className="h-5 w-5 text-blue-600" />
                         ) : (
                           <Square className="h-5 w-5 text-gray-400" />
                         )}
                       </button>
-                    </TableCell>
-                    <TableCell>
-                      {stylist.photo ? (
-                        <img
-                          src={stylist.photo}
-                          alt={`${stylist.user.firstName} ${stylist.user.lastName}`}
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
-                          <span className="text-sm font-medium text-gray-600">
-                            {stylist.user.firstName[0]}{stylist.user.lastName[0]}
-                          </span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {stylist.user.firstName} {stylist.user.lastName}
-                    </TableCell>
-                    <TableCell>{stylist.user.email}</TableCell>
-                    <TableCell>{stylist.user.phone || '-'}</TableCell>
-                    <TableCell>{stylist.specialties || '-'}</TableCell>
-                    <TableCell>
-                      {stylist.hourlyRate ? `$${stylist.hourlyRate.toFixed(2)}/hr` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={stylist.active ? 'success' : 'neutral'}>
-                        {stylist.active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => { setSelectedStylist(stylist); setShowModal(true); }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(stylist)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead>Photo</TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('name')}
+                        className="flex items-center gap-1 hover:text-gray-900"
+                      >
+                        Name
+                        {getSortIcon('name')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('email')}
+                        className="flex items-center gap-1 hover:text-gray-900"
+                      >
+                        Email
+                        {getSortIcon('email')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('phone')}
+                        className="flex items-center gap-1 hover:text-gray-900"
+                      >
+                        Phone
+                        {getSortIcon('phone')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('specialties')}
+                        className="flex items-center gap-1 hover:text-gray-900"
+                      >
+                        Specialties
+                        {getSortIcon('specialties')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('rate')}
+                        className="flex items-center gap-1 hover:text-gray-900"
+                      >
+                        Hourly Rate
+                        {getSortIcon('rate')}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button
+                        onClick={() => handleSort('status')}
+                        className="flex items-center gap-1 hover:text-gray-900"
+                      >
+                        Status
+                        {getSortIcon('status')}
+                      </button>
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedStylists.map((stylist) => (
+                    <TableRow
+                      key={stylist.id}
+                      className={selectedIds.has(stylist.id) ? 'bg-blue-50' : ''}
+                      onClick={(e) => {
+                        if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input') || (e.target as HTMLElement).closest('select')) {
+                          return;
+                        }
+                        router.push(`/dashboard/stylists/${stylist.id}`);
+                      }}
+                    >
+                      <TableCell>
+                        <button
+                          onClick={() => handleSelectOne(stylist.id)}
+                          className="flex items-center justify-center"
+                        >
+                          {selectedIds.has(stylist.id) ? (
+                            <CheckSquare className="h-5 w-5 text-blue-600" />
+                          ) : (
+                            <Square className="h-5 w-5 text-gray-400" />
+                          )}
+                        </button>
+                      </TableCell>
+                      <TableCell>
+                        {stylist.photo ? (
+                          <img
+                            src={stylist.photo}
+                            alt={`${stylist.user.firstName} ${stylist.user.lastName}`}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
+                            <span className="text-sm font-medium text-gray-600">
+                              {stylist.user.firstName[0]}{stylist.user.lastName[0]}
+                            </span>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {stylist.user.firstName} {stylist.user.lastName}
+                      </TableCell>
+                      <TableCell>{stylist.user.email}</TableCell>
+                      <TableCell>{stylist.user.phone || '-'}</TableCell>
+                      <TableCell>{stylist.specialties || '-'}</TableCell>
+                      <TableCell>
+                        {stylist.hourlyRate ? `$${stylist.hourlyRate.toFixed(2)}/hr` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={stylist.active ? 'success' : 'neutral'}>
+                          {stylist.active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => { setSelectedStylist(stylist); setShowModal(true); }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(stylist)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
