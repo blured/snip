@@ -1,67 +1,81 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const passwordHash1 = await bcrypt.hash('lucien', 10);
-  const passwordHash2 = await bcrypt.hash('orlalaurent', 10);
+const SALT_ROUNDS = 10;
 
-  // Create first user
-  const user1 = await prisma.user.upsert({
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+async function main() {
+  console.log('Adding users...');
+
+  // Create Laurent (Admin)
+  const laurentPassword = await hashPassword('laurent');
+  const laurent = await prisma.user.upsert({
     where: { email: 'laurenth@gmail.com' },
     update: {},
     create: {
       email: 'laurenth@gmail.com',
-      passwordHash: passwordHash1,
+      passwordHash: laurentPassword,
       firstName: 'Laurent',
       lastName: 'H',
       role: 'ADMIN',
       active: true,
     },
   });
+  console.log('✓ Created/updated admin user:', laurent.email);
 
-  // Create client profile for user1 if it doesn't exist
-  await prisma.client.upsert({
-    where: { userId: user1.id },
-    update: {},
-    create: {
-      userId: user1.id,
-    },
-  });
-
-  console.log('Created user:', user1.email);
-
-  // Create second user
-  const user2 = await prisma.user.upsert({
+  // Create Fiona (Client)
+  const fionaPassword = await hashPassword('orlalaurent');
+  const fiona = await prisma.user.upsert({
     where: { email: 'fiona.yeates@gmail.com' },
     update: {},
     create: {
       email: 'fiona.yeates@gmail.com',
-      passwordHash: passwordHash2,
+      passwordHash: fionaPassword,
       firstName: 'Fiona',
       lastName: 'Yeates',
-      role: 'ADMIN',
+      role: 'CLIENT',
       active: true,
+      client: {
+        create: {},
+      },
     },
   });
+  console.log('✓ Created/updated client user:', fiona.email);
 
-  // Create client profile for user2 if it doesn't exist
-  await prisma.client.upsert({
-    where: { userId: user2.id },
+  // Create Stylist
+  const stylistPassword = await hashPassword('stylist');
+  const stylist = await prisma.user.upsert({
+    where: { email: 'stylist@artistvan.com' },
     update: {},
     create: {
-      userId: user2.id,
+      email: 'stylist@artistvan.com',
+      passwordHash: stylistPassword,
+      firstName: 'Stylist',
+      lastName: 'Artist',
+      role: 'STYLIST',
+      active: true,
+      stylist: {
+        create: {},
+      },
     },
   });
+  console.log('✓ Created/updated stylist user:', stylist.email);
 
-  console.log('Created user:', user2.email);
-  console.log('Done!');
+  console.log('\n✅ All users added successfully!');
+  console.log('\nLogin credentials:');
+  console.log('1. Admin:    laurenth@gmail.com / laurent');
+  console.log('2. Client:   fiona.yeates@gmail.com / orlalaurent');
+  console.log('3. Stylist:  stylist@artistvan.com / stylist');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('Error adding users:', e);
     process.exit(1);
   })
   .finally(async () => {
