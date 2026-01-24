@@ -21,6 +21,7 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading }: ClientForm
       email: client?.user?.email || '',
       phone: client?.user?.phone || '',
     },
+    password: '',
     dateOfBirth: client?.dateOfBirth ? client.dateOfBirth.split('T')[0] : '',
     preferredStylistId: client?.preferredStylistId || '',
     notes: client?.notes || '',
@@ -44,6 +45,11 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading }: ClientForm
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.user.email)) {
       newErrors.email = 'Invalid email format';
     }
+    if (!client && !formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password && formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -64,6 +70,11 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading }: ClientForm
       allergies: formData.allergies || undefined,
       preferredProducts: formData.preferredProducts || undefined,
     };
+
+    // Only include password when creating a new client
+    if (!client && formData.password) {
+      submitData.password = formData.password;
+    }
 
     if (formData.dateOfBirth) {
       submitData.dateOfBirth = new Date(formData.dateOfBirth).toISOString();
@@ -130,6 +141,19 @@ export function ClientForm({ client, onSubmit, onCancel, isLoading }: ClientForm
         disabled={isLoading}
         required
       />
+
+      {!client && (
+        <Input
+          label="Password *"
+          type="password"
+          value={formData.password}
+          onChange={(e) => handleChange('password', e.target.value)}
+          error={errors.password}
+          disabled={isLoading}
+          placeholder="Min 6 characters"
+          required
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <Input
