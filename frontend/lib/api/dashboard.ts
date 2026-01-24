@@ -10,6 +10,7 @@ export interface DashboardStats {
 export interface UpcomingAppointment {
   id: string;
   scheduledStart: string;
+  scheduledEnd: string;
   status: string;
   notes: string | null;
   client: {
