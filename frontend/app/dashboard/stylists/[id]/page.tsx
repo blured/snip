@@ -92,9 +92,16 @@ export default function StylistDetailPage() {
                 <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                   <div>
                     <h1 className="text-3xl font-bold text-gray-900">{stylistName}</h1>
-                    <p className="text-gray-600">
-                      {stylist.specialties || 'Professional Stylist'}
-                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      {stylist.jobTitle && (
+                        <Badge variant="info" className="text-sm">
+                          {stylist.jobTitle.title}
+                        </Badge>
+                      )}
+                      <p className="text-gray-600">
+                        {stylist.specialties || 'Professional Stylist'}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button

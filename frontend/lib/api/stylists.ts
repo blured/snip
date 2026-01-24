@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Stylist, StylistAvailability, StylistTimeOff } from '@/types';
+import type { Stylist, StylistAvailability, StylistTimeOff, JobTitle } from '@/types';
 
 export const stylistsApi = {
   getAll: async (): Promise<Stylist[]> => {
@@ -48,6 +48,11 @@ export const stylistsApi = {
 
   requestTimeOff: async (id: string, data: Partial<StylistTimeOff>): Promise<StylistTimeOff> => {
     const response = await apiClient.post(`/api/stylists/${id}/timeoff`, data);
+    return response.data;
+  },
+
+  getJobTitles: async (): Promise<JobTitle[]> => {
+    const response = await apiClient.get('/api/stylists/job-titles/all');
     return response.data;
   },
 };

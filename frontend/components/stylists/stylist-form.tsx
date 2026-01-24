@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useJobTitlesGrouped } from '@/hooks/use-job-titles';
+import { CareerStage } from '@/types';
 import type { Stylist } from '@/types';
 
 interface StylistFormProps {
@@ -10,7 +12,18 @@ interface StylistFormProps {
   isLoading?: boolean;
 }
 
+const CAREER_STAGE_LABELS: Record<CareerStage, string> = {
+  [CareerStage.ENTRY_LEVEL]: 'Entry Level',
+  [CareerStage.EARLY_PRO]: 'Early Professional',
+  [CareerStage.MID_LEVEL]: 'Mid-Level',
+  [CareerStage.ADVANCED]: 'Advanced',
+  [CareerStage.LEADERSHIP]: 'Leadership',
+  [CareerStage.OWNERSHIP]: 'Ownership',
+};
+
 export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistFormProps) {
+  const { grouped, jobTitles, isLoading: jobTitlesLoading } = useJobTitlesGrouped();
+
   const [formData, setFormData] = useState({
     user: {
       firstName: stylist?.user?.firstName || '',
@@ -18,6 +31,7 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
       email: stylist?.user?.email || '',
       phone: stylist?.user?.phone || '',
     },
+    jobTitleId: stylist?.jobTitleId || '',
     specialties: stylist?.specialties || '',
     bio: stylist?.bio || '',
     photo: stylist?.photo || '',
@@ -56,6 +70,7 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
 
     const submitData: any = {
       user: formData.user,
+      jobTitleId: formData.jobTitleId || undefined,
       specialties: formData.specialties || undefined,
       bio: formData.bio || undefined,
       photo: formData.photo || undefined,
@@ -140,6 +155,34 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
         disabled={isLoading}
         placeholder="(555) 123-4567"
       />
+
+      {/* Job Title Selector */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          Job Title
+        </label>
+        {jobTitlesLoading ? (
+          <div className="text-sm text-gray-500">Loading job titles...</div>
+        ) : (
+          <select
+            value={formData.jobTitleId}
+            onChange={(e) => handleChange('jobTitleId', e.target.value)}
+            disabled={isLoading}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            <option value="">Select a job title (optional)</option>
+            {Object.entries(grouped || {}).map(([stage, titles]) => (
+              <optgroup key={stage} label={CAREER_STAGE_LABELS[stage as CareerStage]}>
+                {titles.map((jobTitle) => (
+                  <option key={jobTitle.id} value={jobTitle.id}>
+                    {jobTitle.title}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        )}
+      </div>
 
       <div>
         <label className="mb-1 block text-sm font-medium text-gray-700">

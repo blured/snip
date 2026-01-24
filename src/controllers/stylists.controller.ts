@@ -5,7 +5,7 @@ import { AuthRequest } from '../middleware/auth';
 
 export const create = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { user, photo, specialties, bio, hourlyRate, commissionRate, active } = req.body;
+    const { user, photo, jobTitleId, specialties, bio, hourlyRate, commissionRate, active } = req.body;
 
     // Generate a default password (in production, you'd want to email this to the user)
     const defaultPassword = Math.random().toString(36).slice(-8);
@@ -29,6 +29,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
       data: {
         userId: newUser.id,
         photo: photo || null,
+        jobTitleId: jobTitleId || null,
         specialties: specialties || null,
         bio: bio || null,
         hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
@@ -47,6 +48,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
             active: true,
           },
         },
+        jobTitle: true,
       },
     });
 
@@ -110,6 +112,7 @@ export const getAll = async (_req: AuthRequest, res: Response): Promise<void> =>
             active: true,
           },
         },
+        jobTitle: true,
         stylistServices: {
           include: {
             service: true,
@@ -145,6 +148,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
             active: true,
           },
         },
+        jobTitle: true,
         stylistServices: {
           include: {
             service: true,
@@ -204,7 +208,7 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
 export const update = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { user, photo, specialties, bio, hourlyRate, commissionRate, active } = req.body;
+    const { user, photo, jobTitleId, specialties, bio, hourlyRate, commissionRate, active } = req.body;
 
     // First update the user if user data is provided
     if (user) {
@@ -224,6 +228,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
       where: { id: id as string },
       data: {
         photo: photo !== undefined ? photo : undefined,
+        jobTitleId: jobTitleId !== undefined ? (jobTitleId || null) : undefined,
         specialties,
         bio,
         hourlyRate: hourlyRate !== undefined ? (hourlyRate ? parseFloat(hourlyRate) : null) : undefined,
@@ -242,6 +247,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
             active: true,
           },
         },
+        jobTitle: true,
       },
     });
 
@@ -336,5 +342,23 @@ export const requestTimeOff = async (req: AuthRequest, res: Response): Promise<v
   } catch (error) {
     console.error('Request time off error:', error);
     res.status(500).json({ error: 'Internal Server Error', message: 'Failed to request time off' });
+  }
+};
+
+// Get all job titles
+export const getJobTitles = async (_req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const jobTitles = await prisma.jobTitle.findMany({
+      where: { active: true },
+      orderBy: [
+        { careerStage: 'asc' },
+        { title: 'asc' },
+      ],
+    });
+
+    res.json(jobTitles);
+  } catch (error) {
+    console.error('Get job titles error:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to fetch job titles' });
   }
 };

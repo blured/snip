@@ -18,4 +18,7 @@ router.post('/:id/availability', authorize('ADMIN', 'STYLIST'), stylistsControll
 router.get('/:id/timeoff', stylistsController.getTimeOff);
 router.post('/:id/timeoff', authorize('ADMIN', 'STYLIST'), stylistsController.requestTimeOff);
 
+// Job titles routes
+router.get('/job-titles/all', stylistsController.getJobTitles);
+
 export default router;

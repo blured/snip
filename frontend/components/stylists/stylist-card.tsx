@@ -40,6 +40,13 @@ export function StylistCard({ stylist, onEdit, onDelete, onClick }: StylistCardP
           {/* Name and Status */}
           <div className="flex-1 pt-1">
             <h3 className="text-xl font-bold text-gray-900">{stylistName}</h3>
+            {stylist.jobTitle && (
+              <div className="mt-1">
+                <Badge variant="info" className="text-xs">
+                  {stylist.jobTitle.title}
+                </Badge>
+              </div>
+            )}
             {stylist.specialties && (
               <p className="mt-1 line-clamp-2 text-sm text-gray-600">{stylist.specialties}</p>
             )}

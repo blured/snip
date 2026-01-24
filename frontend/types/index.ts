@@ -41,6 +41,15 @@ export enum DayOfWeek {
   SUNDAY = 'SUNDAY',
 }
 
+export enum CareerStage {
+  ENTRY_LEVEL = 'ENTRY_LEVEL',
+  EARLY_PRO = 'EARLY_PRO',
+  MID_LEVEL = 'MID_LEVEL',
+  ADVANCED = 'ADVANCED',
+  LEADERSHIP = 'LEADERSHIP',
+  OWNERSHIP = 'OWNERSHIP',
+}
+
 // Data models
 export interface User {
   id: string;
@@ -72,9 +81,20 @@ export interface Client {
   invoices?: Invoice[];
 }
 
+export interface JobTitle {
+  id: string;
+  careerStage: CareerStage;
+  title: string;
+  primaryFocus: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Stylist {
   id: string;
   userId: string;
+  jobTitleId?: string;
   specialties?: string;
   bio?: string;
   photo?: string;
@@ -84,6 +104,7 @@ export interface Stylist {
   createdAt: string;
   updatedAt: string;
   user: User;
+  jobTitle?: JobTitle;
   appointments?: Appointment[];
   availability?: StylistAvailability[];
   timeOff?: StylistTimeOff[];
