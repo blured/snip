@@ -50,7 +50,7 @@ export default function ClientInvoicesPage() {
           <TableBody>
             {invoices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-12 text-gray-500">
+                <TableCell className="text-center py-12 text-gray-500">
                   No invoices yet
                 </TableCell>
               </TableRow>
