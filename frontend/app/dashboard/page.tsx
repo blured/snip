@@ -12,9 +12,9 @@ export default function DashboardPage() {
   const { data: upcoming, isLoading: upcomingLoading } = useUpcomingAppointments();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IE', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
     }).format(amount);
   };
 

@@ -138,7 +138,7 @@ export default function ServicesPage() {
                       <Badge variant="neutral">{service.category}</Badge>
                     </TableCell>
                     <TableCell>{service.durationMinutes} min</TableCell>
-                    <TableCell>${service.basePrice.toFixed(2)}</TableCell>
+                    <TableCell>€{service.basePrice.toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge variant={service.active ? 'success' : 'neutral'}>
                         {service.active ? 'Active' : 'Inactive'}
