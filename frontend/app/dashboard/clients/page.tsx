@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,11 +16,19 @@ import type { Client } from '@/types';
 
 export default function ClientsPage() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const { data: clients, isLoading, error } = useClients();
   const deleteClient = useDeleteClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | undefined>();
+
+  // Redirect clients away from this page
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'CLIENT') {
+      router.push('/client-portal/appointments');
+    }
+  }, [isAuthenticated, user, router]);
 
   const filteredClients = clients?.filter((client) => {
     const searchLower = searchQuery.toLowerCase();

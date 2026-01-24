@@ -6,18 +6,52 @@ export const getAll = async (req: AuthRequest, res: Response): Promise<void> => 
   try {
     const { start, end, stylistId, clientId, status } = req.query;
 
+    // Build base where clause
+    const where: any = {
+      ...(start && end && {
+        scheduledStart: {
+          gte: new Date(start as string),
+          lte: new Date(end as string),
+        },
+      }),
+      ...(status && { status: status as any }),
+    };
+
+    // Filter by role
+    if (req.user) {
+      if (req.user.role === 'CLIENT') {
+        // Clients can only see their own appointments
+        // Get their client ID
+        const client = await prisma.client.findUnique({
+          where: { userId: req.user.userId },
+          select: { id: true },
+        });
+        if (client) {
+          where.clientId = client.id;
+        }
+      } else if (req.user.role === 'STYLIST') {
+        // Stylists can only see their own appointments
+        const stylist = await prisma.stylist.findUnique({
+          where: { userId: req.user.userId },
+          select: { id: true },
+        });
+        if (stylist) {
+          where.stylistId = stylist.id;
+        }
+      }
+      // Admins can see all appointments (no filter)
+    }
+
+    // Allow explicit filtering by stylistId or clientId for admins/stylists
+    if (stylistId && req.user && (req.user.role === 'ADMIN' || req.user.role === 'STYLIST')) {
+      where.stylistId = stylistId as string;
+    }
+    if (clientId && req.user && (req.user.role === 'ADMIN' || req.user.role === 'STYLIST')) {
+      where.clientId = clientId as string;
+    }
+
     const appointments = await prisma.appointment.findMany({
-      where: {
-        ...(start && end && {
-          scheduledStart: {
-            gte: new Date(start as string),
-            lte: new Date(end as string),
-          },
-        }),
-        ...(stylistId && { stylistId: stylistId as string }),
-        ...(clientId && { clientId: clientId as string }),
-        ...(status && { status: status as any }),
-      },
+      where,
       include: {
         client: {
           include: {
@@ -64,33 +98,9 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
     const appointment = await prisma.appointment.findUnique({
       where: { id: id as string },
       include: {
-        client: {
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                phone: true,
-                email: true,
-              },
-            },
-          },
-        },
-        stylist: {
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-              },
-            },
-          },
-        },
-        services: {
-          include: {
-            service: true,
-          },
-        },
+        client: { include: { user: { select: { firstName: true, lastName: true, phone: true, email: true } } } },
+        stylist: { include: { user: { select: { firstName: true, lastName: true } } } },
+        services: { include: { service: true } },
         invoice: true,
       },
     });
@@ -99,6 +109,33 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
       res.status(404).json({ error: 'Not Found', message: 'Appointment not found' });
       return;
     }
+
+    // Check authorization: admins, the assigned stylist, or the client
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized', message: 'Not authenticated' });
+      return;
+    }
+
+    if (req.user.role === 'CLIENT') {
+      const client = await prisma.client.findUnique({
+        where: { userId: req.user.userId },
+        select: { id: true },
+      });
+      if (!client || client.id !== appointment.clientId) {
+        res.status(403).json({ error: 'Forbidden', message: 'You can only view your own appointments' });
+        return;
+      }
+    } else if (req.user.role === 'STYLIST') {
+      const stylist = await prisma.stylist.findUnique({
+        where: { userId: req.user.userId },
+        select: { id: true },
+      });
+      if (!stylist || stylist.id !== appointment.stylistId) {
+        res.status(403).json({ error: 'Forbidden', message: 'You can only view your own appointments' });
+        return;
+      }
+    }
+    // Admins can view any appointment
 
     res.json(appointment);
   } catch (error) {

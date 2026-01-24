@@ -3,8 +3,14 @@ import prisma from '../utils/prisma';
 import { AuthRequest } from '../middleware/auth';
 import { hashPassword } from '../utils/password';
 
-export const getAll = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getAll = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Only admins and stylists can view all clients
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STYLIST')) {
+      res.status(403).json({ error: 'Forbidden', message: 'Only admins and stylists can view all clients' });
+      return;
+    }
+
     const clients = await prisma.client.findMany({
       include: {
         user: {
@@ -42,6 +48,12 @@ export const getAll = async (_req: AuthRequest, res: Response): Promise<void> =>
 export const getById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Check authorization: admins, stylists, or the client themselves
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STYLIST' && req.user.userId !== id)) {
+      res.status(403).json({ error: 'Forbidden', message: 'You do not have permission to view this client' });
+      return;
+    }
 
     const client = await prisma.client.findUnique({
       where: { id: id as string },
@@ -104,6 +116,12 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
 
 export const create = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Only admins and stylists can create clients
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STYLIST')) {
+      res.status(403).json({ error: 'Forbidden', message: 'Only admins and stylists can create clients' });
+      return;
+    }
+
     const {
       user,
       password,
@@ -175,9 +193,26 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
 export const update = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Check authorization: admins, stylists, or the client themselves
+    const client = await prisma.client.findUnique({
+      where: { id: id as string },
+      select: { userId: true },
+    });
+
+    if (!client) {
+      res.status(404).json({ error: 'Not Found', message: 'Client not found' });
+      return;
+    }
+
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STYLIST' && req.user.userId !== client.userId)) {
+      res.status(403).json({ error: 'Forbidden', message: 'You do not have permission to update this client' });
+      return;
+    }
+
     const { dateOfBirth, preferredStylistId, notes, allergies, preferredProducts } = req.body;
 
-    const client = await prisma.client.update({
+    const updatedClient = await prisma.client.update({
       where: { id: id as string },
       data: {
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
@@ -201,7 +236,7 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
       },
     });
 
-    res.json(client);
+    res.json(updatedClient);
   } catch (error) {
     console.error('Update client error:', error);
     res.status(500).json({ error: 'Internal Server Error', message: 'Failed to update client' });
@@ -210,6 +245,12 @@ export const update = async (req: AuthRequest, res: Response): Promise<void> => 
 
 export const remove = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    // Only admins can delete clients
+    if (!req.user || req.user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Forbidden', message: 'Only admins can delete clients' });
+      return;
+    }
+
     const { id } = req.params;
 
     const client = await prisma.client.findUnique({
@@ -237,6 +278,22 @@ export const remove = async (req: AuthRequest, res: Response): Promise<void> => 
 export const getAppointments = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Check authorization: admins, stylists, or the client themselves
+    const client = await prisma.client.findUnique({
+      where: { id: id as string },
+      select: { userId: true },
+    });
+
+    if (!client) {
+      res.status(404).json({ error: 'Not Found', message: 'Client not found' });
+      return;
+    }
+
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STYLIST' && req.user.userId !== client.userId)) {
+      res.status(403).json({ error: 'Forbidden', message: 'You do not have permission to view these appointments' });
+      return;
+    }
 
     const appointments = await prisma.appointment.findMany({
       where: { clientId: id as string },
@@ -270,6 +327,22 @@ export const getAppointments = async (req: AuthRequest, res: Response): Promise<
 export const getInvoices = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    // Check authorization: admins, stylists, or the client themselves
+    const client = await prisma.client.findUnique({
+      where: { id: id as string },
+      select: { userId: true },
+    });
+
+    if (!client) {
+      res.status(404).json({ error: 'Not Found', message: 'Client not found' });
+      return;
+    }
+
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STYLIST' && req.user.userId !== client.userId)) {
+      res.status(403).json({ error: 'Forbidden', message: 'You do not have permission to view these invoices' });
+      return;
+    }
 
     const invoices = await prisma.invoice.findMany({
       where: { clientId: id as string },
