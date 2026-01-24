@@ -209,7 +209,7 @@ export function CalendarSettingsModal({
       </div>
 
       <div className="flex justify-end gap-3 mt-6">
-        <Button variant="outline" onClick={dialogClose}>
+        <Button variant="ghost" onClick={dialogClose}>
           Cancel
         </Button>
         <Button onClick={handleSave}>Save Settings</Button>
