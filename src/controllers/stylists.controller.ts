@@ -129,6 +129,7 @@ export const getAll = async (_req: AuthRequest, res: Response): Promise<void> =>
 export const getById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+    const { include } = req.query;
 
     const stylist = await prisma.stylist.findUnique({
       where: { id: id as string },
@@ -149,6 +150,33 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
             service: true,
           },
         },
+        ...(include === 'appointments' && {
+          appointments: {
+            include: {
+              client: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      firstName: true,
+                      lastName: true,
+                      email: true,
+                      phone: true,
+                    },
+                  },
+                },
+              },
+              services: {
+                include: {
+                  service: true,
+                },
+              },
+            },
+            orderBy: {
+              scheduledStart: 'desc',
+            },
+          },
+        }),
         availability: true,
         timeOff: {
           where: {
