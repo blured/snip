@@ -28,7 +28,7 @@ export default function ClientInvoicesPage() {
   }
 
   // TODO: Fetch client's invoices
-  const invoices = [];
+  const invoices: any[] = [];
 
   return (
     <DashboardLayout>
