@@ -26,8 +26,8 @@ build/
 Thumbs.db
 
 # Prisma
-prisma/migrations/*
-!prisma/migrations/.gitkeep
+!prisma/migrations/*.sql
+prisma/migrations/migration_lock.toml
 
 # Logs
 logs/
