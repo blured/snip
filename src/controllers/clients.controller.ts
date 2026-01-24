@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import prisma from '../utils/prisma';
 import { AuthRequest } from '../middleware/auth';
+import { hashPassword } from '../utils/password';
 
 export const getAll = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -105,6 +106,7 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
   try {
     const {
       user,
+      password,
       dateOfBirth,
       preferredStylistId,
       notes,
@@ -112,10 +114,14 @@ export const create = async (req: AuthRequest, res: Response): Promise<void> => 
       preferredProducts,
     } = req.body;
 
+    // Hash password
+    const passwordHash = await hashPassword(password);
+
     // Create user first
     const newUser = await prisma.user.create({
       data: {
         email: user.email,
+        passwordHash,
         firstName: user.firstName,
         lastName: user.lastName,
         phone: user.phone || null,
