@@ -18,6 +18,7 @@ import {
 } from '@syncfusion/ej2-react-schedule';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 import type { Appointment, AppointmentStatus, Stylist } from '@/types';
+import { CalendarSettings } from './calendar-settings-modal';
 
 // Register Syncfusion license
 const licenseKey = process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE || 'ORg4AjUWIQA/Gnt2VVhiQlFac1pbWlHfFpVFpbWlpXCVJVFRPAH0AQEA1UVNVVVPXVNDVUdUR0c=';
@@ -37,6 +38,7 @@ interface AppointmentCalendarProps {
   appointments: Appointment[];
   stylists?: Stylist[];
   stylistFilter?: string;
+  calendarSettings?: CalendarSettings;
   onEventClick?: (appointment: Appointment) => void;
   onEventDrop?: (
     appointmentId: string,
@@ -91,6 +93,7 @@ export function AppointmentCalendar({
   appointments,
   stylists = [],
   stylistFilter,
+  calendarSettings,
   onEventClick,
   onEventDrop,
   onStylistFilterChange,
@@ -446,7 +449,8 @@ export function AppointmentCalendar({
             width="100%"
             height="750px"
             selectedDate={new Date()}
-            currentView="TimelineWeek"
+            currentView={calendarSettings?.currentView || 'TimelineWeek'}
+            firstDayOfWeek={calendarSettings?.firstDayOfWeek || 1}
             eventSettings={{
               dataSource: data as any,
               fields: fieldMapping,
@@ -473,13 +477,13 @@ export function AppointmentCalendar({
               />
             </ResourcesDirective>
             <ViewsDirective>
-              <ViewDirective option="Day" startHour="09:00" endHour="18:00" />
-              <ViewDirective option="Week" startHour="09:00" endHour="18:00" />
-              <ViewDirective option="WorkWeek" startHour="09:00" endHour="18:00" />
+              <ViewDirective option="Day" startHour={calendarSettings?.startHour || '09:00'} endHour={calendarSettings?.endHour || '18:00'} interval={calendarSettings?.interval || 30} />
+              <ViewDirective option="Week" startHour={calendarSettings?.startHour || '09:00'} endHour={calendarSettings?.endHour || '18:00'} interval={calendarSettings?.interval || 30} />
+              <ViewDirective option="WorkWeek" startHour={calendarSettings?.startHour || '09:00'} endHour={calendarSettings?.endHour || '18:00'} interval={calendarSettings?.interval || 30} />
               <ViewDirective option="Month" />
-              <ViewDirective option="TimelineDay" group={{ allowEdit: false }} />
-              <ViewDirective option="TimelineWeek" group={{ allowEdit: false }} />
-              <ViewDirective option="TimelineWorkWeek" group={{ allowEdit: false }} />
+              <ViewDirective option="TimelineDay" group={{ allowEdit: false }} interval={calendarSettings?.interval || 30} />
+              <ViewDirective option="TimelineWeek" group={{ allowEdit: false }} interval={calendarSettings?.interval || 30} />
+              <ViewDirective option="TimelineWorkWeek" group={{ allowEdit: false }} interval={calendarSettings?.interval || 30} />
               <ViewDirective option="TimelineMonth" group={{ allowEdit: false }} />
             </ViewsDirective>
             <Inject services={[Day, Week, WorkWeek, Month, TimelineViews, TimelineMonth]} />

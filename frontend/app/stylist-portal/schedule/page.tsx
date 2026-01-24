@@ -1,23 +1,29 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { AppointmentCalendar } from '@/components/appointments/appointment-calendar';
+import {
+  CalendarSettingsModal,
+  useCalendarSettings,
+  CalendarSettingsButton,
+} from '@/components/appointments/calendar-settings-modal';
 import { useAppointments } from '@/hooks/use-appointments';
 import { useStylists } from '@/hooks/use-stylists';
 import type { Appointment } from '@/types';
-import { toast from 'react-hot-toast';
-import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function StylistSchedulePage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
+  const { settings, saveSettings } = useCalendarSettings();
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -46,7 +52,11 @@ export default function StylistSchedulePage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
+      <div className="mb-4 flex justify-end">
+        <CalendarSettingsButton onClick={() => setShowSettings(true)} />
+      </div>
+
+      <div className="mb-4">
         <h1 className="text-3xl font-bold text-gray-900">My Schedule</h1>
         <p className="text-gray-600">View and manage your appointments</p>
       </div>
@@ -64,6 +74,7 @@ export default function StylistSchedulePage() {
           appointments={stylistAppointments ?? []}
           stylists={stylists?.filter(s => s.id === user.stylistId) ?? []}
           stylistFilter=""
+          calendarSettings={settings}
           onEventClick={handleEventClick}
           onEventDrop={async () => {
             toast.error('Please contact reception to reschedule');
@@ -71,6 +82,13 @@ export default function StylistSchedulePage() {
           onStylistFilterChange={() => {}}
         />
       )}
+
+      <CalendarSettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        settings={settings}
+        onSave={saveSettings}
+      />
     </DashboardLayout>
   );
 }

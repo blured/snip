@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { AppointmentCalendar } from '@/components/appointments/appointment-calendar';
 import { AppointmentModal } from '@/components/appointments/appointment-modal';
+import {
+  CalendarSettingsModal,
+  useCalendarSettings,
+  CalendarSettingsButton,
+} from '@/components/appointments/calendar-settings-modal';
 import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments';
 import { useStylists } from '@/hooks/use-stylists';
 import toast from 'react-hot-toast';
@@ -22,9 +27,11 @@ export default function SchedulePage() {
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
   const updateAppointment = useUpdateAppointment();
+  const { settings, saveSettings } = useCalendarSettings();
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
   const [showModal, setShowModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [stylistFilter, setStylistFilter] = useState<string>('');
   const [newAppointmentData, setNewAppointmentData] = useState<NewAppointmentData | null>(null);
 
@@ -65,6 +72,10 @@ export default function SchedulePage() {
 
   return (
     <DashboardLayout>
+      <div className="mb-4 flex justify-end">
+        <CalendarSettingsButton onClick={() => setShowSettings(true)} />
+      </div>
+
       {/* Calendar - Full Width like Syncfusion Showcase */}
       {isLoading ? (
         <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-12">
@@ -79,6 +90,7 @@ export default function SchedulePage() {
           appointments={appointments ?? []}
           stylists={stylists ?? []}
           stylistFilter={stylistFilter}
+          calendarSettings={settings}
           onEventClick={handleEventClick}
           onEventDrop={handleEventDrop}
           onStylistFilterChange={setStylistFilter}
@@ -91,6 +103,13 @@ export default function SchedulePage() {
         onClose={handleCloseModal}
         appointment={selectedAppointment}
         newAppointmentData={newAppointmentData}
+      />
+
+      <CalendarSettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        settings={settings}
+        onSave={saveSettings}
       />
     </DashboardLayout>
   );
