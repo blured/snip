@@ -125,7 +125,6 @@ export function CalendarSettingsModal({
   return (
     <DialogComponent
       width="400px"
-      target="#portal-dialog"
       visible={isOpen}
       close={dialogClose}
       header="Calendar Preferences"
