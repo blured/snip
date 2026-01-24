@@ -31,8 +31,6 @@ export default function ClientAppointmentsPage() {
     }
   }, [isAuthenticated, user, router]);
 
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
-
   const handleEventClick = (appointment: Appointment) => {
     // Clients can only view, not edit
     setSelectedAppointment(appointment);
