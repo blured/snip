@@ -8,6 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 // Routes
+router.post('/', clientsController.create);
 router.get('/', clientsController.getAll);
 router.get('/:id', clientsController.getById);
 router.put('/:id', clientsController.update);

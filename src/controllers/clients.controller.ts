@@ -101,6 +101,71 @@ export const getById = async (req: AuthRequest, res: Response): Promise<void> =>
   }
 };
 
+export const create = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      user,
+      dateOfBirth,
+      preferredStylistId,
+      notes,
+      allergies,
+      preferredProducts,
+    } = req.body;
+
+    // Create user first
+    const newUser = await prisma.user.create({
+      data: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone || null,
+        role: 'CLIENT',
+        active: true,
+      },
+    });
+
+    // Create client
+    const client = await prisma.client.create({
+      data: {
+        userId: newUser.id,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        preferredStylistId: preferredStylistId || null,
+        notes,
+        allergies,
+        preferredProducts,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            role: true,
+            active: true,
+          },
+        },
+        preferredStylist: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.status(201).json(client);
+  } catch (error) {
+    console.error('Create client error:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to create client' });
+  }
+};
+
 export const update = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
