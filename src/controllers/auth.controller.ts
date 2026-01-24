@@ -150,10 +150,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Remove passwordHash and add stylistId/clientId
-    const { passwordHash, ...userWithoutPassword } = fullUser;
+    // Add stylistId/clientId to the response
     const responseUser: any = {
-      ...userWithoutPassword,
+      ...fullUser,
       stylistId: fullUser.stylist?.id || null,
       clientId: fullUser.client?.id || null,
     };
