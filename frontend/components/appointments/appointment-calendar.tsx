@@ -211,11 +211,16 @@ export function AppointmentCalendar({
         </div>
       );
     }
+
+    // Find the stylist to get their photo
+    const stylist = stylists.find(s => s.id === props.Id);
+    const imageUrl = stylist?.photo || props.Image;
+
     return (
       <div className="template-wrap">
         <div className="specialist-image">
           <img
-            src={props.Image}
+            src={imageUrl}
             alt={props.Name}
             style={{ width: '32px', height: '32px', borderRadius: '50%' }}
           />
@@ -248,6 +253,7 @@ export function AppointmentCalendar({
           font-family: "Helvetica Neue", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont;
           letter-spacing: 0.05px;
           background: linear-gradient(-141deg, #FBFAFF 14%, #FBFAFF 100%);
+          min-height: calc(100vh - 120px);
         }
 
         .planner-calendar-wrapper .e-schedule .e-schedule-toolbar .e-schedule-toolbar-container {
@@ -295,27 +301,28 @@ export function AppointmentCalendar({
           background-color: white;
         }
 
-        .planner-wrapper {
-          display: flex;
-          justify-content: space-between;
-          margin: 30px 50px;
+        .planner-calendar-wrapper .e-schedule .e-content-wrap {
+          background-color: white;
         }
 
         .drag-sample-wrapper {
           display: flex;
           justify-content: space-between;
+          padding: 30px 50px;
+          gap: 25px;
         }
 
         .schedule-container {
-          width: 85%;
-          padding-right: 25px;
+          flex: 1;
+          min-width: 0;
         }
 
         .sidebar-right {
-          width: 15%;
+          width: 280px;
           display: flex;
           flex-direction: column;
           gap: 30px;
+          flex-shrink: 0;
         }
 
         .template-wrap {
@@ -340,11 +347,23 @@ export function AppointmentCalendar({
           color: #666;
         }
 
+        .waiting-list-section {
+          margin-top: 20px;
+        }
+
         .waiting-list-title {
-          margin-top: 45px;
-          font-size: 16px;
+          font-size: 18px;
           font-weight: 600;
           color: #333;
+          margin-bottom: 15px;
+          padding-bottom: 10px;
+          border-bottom: 2px solid #7575FF;
+        }
+
+        .waiting-list-content {
+          font-size: 13px;
+          color: #666;
+          line-height: 1.5;
         }
 
         /* Appointment styling */
@@ -352,35 +371,42 @@ export function AppointmentCalendar({
           border-radius: 4px;
         }
 
-        /* Mobile responsive */
-        @media (max-width: 850px) {
-          .planner-wrapper {
-            margin: 20px 10px !important;
-          }
-
-          .schedule-container {
-            width: 100% !important;
-            padding-right: 0 !important;
-          }
-
-          .sidebar-right {
-            width: 100% !important;
-          }
+        /* Specialist dropdown styling */
+        .planner-calendar-wrapper .e-dropdown {
+          width: 100%;
         }
 
-        /* Specialist dropdown */
         .planner-calendar-wrapper .e-dropdown-popup {
           max-height: 400px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .planner-calendar-wrapper .e-list-item {
           height: 65px;
           padding: 0 15px;
           margin: 5px 0;
+          border-radius: 4px;
         }
 
         .planner-calendar-wrapper .e-list-item:hover {
           background-color: ${HOVER_COLOR};
+        }
+
+        .planner-calendar-wrapper .e-list-item.e-selected {
+          background-color: #f0f0ff;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 1024px) {
+          .drag-sample-wrapper {
+            flex-direction: column;
+            padding: 20px;
+          }
+
+          .sidebar-right {
+            width: 100%;
+          }
         }
       `}</style>
       <div className="drag-sample-wrapper">
@@ -388,7 +414,7 @@ export function AppointmentCalendar({
           <ScheduleComponent
             ref={scheduleObj}
             width="100%"
-            height={800}
+            height="750px"
             selectedDate={new Date()}
             currentView="TimelineWeek"
             eventSettings={{
@@ -433,32 +459,34 @@ export function AppointmentCalendar({
         {/* Right Sidebar with Specialist Dropdown and Waiting List */}
         <div className="sidebar-right">
           {/* Specialist Dropdown */}
-          <DropDownListComponent
-            id="specialistDropdown"
-            dataSource={resourcesData.filter((r) => r.Id !== '1') as any[]}
-            fields={specialistFields as any}
-            placeholder="Select Specialist"
-            value={stylistFilter || '1'}
-            headerTemplate={specialistTemplate as any}
-            itemTemplate={specialistTemplate as any}
-            popupHeight="400px"
-            cssClass="specialist-dropdown"
-            change={(args: any) => {
-              // Handle stylist filter change
-              const selectedId = args.itemData?.Id || args.value;
-              if (onStylistFilterChange && selectedId) {
-                onStylistFilterChange(selectedId === '1' ? '' : selectedId);
-              }
-            }}
-          />
+          <div>
+            <label className="block mb-2 text-sm font-semibold text-gray-700">Filter by Stylist</label>
+            <DropDownListComponent
+              id="specialistDropdown"
+              dataSource={resourcesData as any[]}
+              fields={specialistFields as any}
+              placeholder="All Stylists"
+              value={stylistFilter || '1'}
+              headerTemplate={specialistTemplate as any}
+              itemTemplate={specialistTemplate as any}
+              popupHeight="400px"
+              cssClass="specialist-dropdown"
+              change={(args: any) => {
+                // Handle stylist filter change
+                const selectedId = args.itemData?.Id || args.value;
+                if (onStylistFilterChange && selectedId) {
+                  onStylistFilterChange(selectedId === '1' ? '' : selectedId);
+                }
+              }}
+            />
+          </div>
 
           {/* Waiting List Section */}
           <div className="waiting-list-section">
             <div className="waiting-list-title">Waiting List</div>
             <div className="waiting-list-content">
-              <div className="text-sm text-gray-500">
-                Conflicted appointments can be dragged to the calendar
-              </div>
+              <p className="mb-2">Appointments with time conflicts appear here.</p>
+              <p className="text-xs text-gray-400">Drag conflicted appointments to the calendar to reschedule.</p>
             </div>
           </div>
         </div>
