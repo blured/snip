@@ -201,7 +201,7 @@ export default function DashboardPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEditAppointment(appointment)}
+                        onClick={() => handleEditAppointment(appointment as any)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
