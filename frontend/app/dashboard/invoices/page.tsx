@@ -161,10 +161,10 @@ export default function InvoicesPage() {
                     <TableCell>
                       {format(new Date(invoice.createdAt), 'MMM dd, yyyy')}
                     </TableCell>
-                    <TableCell>${invoice.total.toFixed(2)}</TableCell>
-                    <TableCell>${totalPaid(invoice).toFixed(2)}</TableCell>
+                    <TableCell>€{invoice.total.toFixed(2)}</TableCell>
+                    <TableCell>€{totalPaid(invoice).toFixed(2)}</TableCell>
                     <TableCell className={balanceDue(invoice) > 0 ? 'font-medium text-red-600' : ''}>
-                      ${balanceDue(invoice).toFixed(2)}
+                      €{balanceDue(invoice).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusColors[invoice.status] || 'neutral'}>

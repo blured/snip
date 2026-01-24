@@ -216,7 +216,7 @@ export function InvoiceForm({ invoice, onSubmit, onCancel, isLoading }: InvoiceF
                     <option value="">Select service...</option>
                     {services?.map((service) => (
                       <option key={service.id} value={service.id}>
-                        {service.name} - ${service.basePrice.toFixed(2)}
+                        {service.name} - €{service.basePrice.toFixed(2)}
                       </option>
                     ))}
                   </select>
@@ -266,7 +266,7 @@ export function InvoiceForm({ invoice, onSubmit, onCancel, isLoading }: InvoiceF
                 )}
               </div>
               <div className="mt-1 text-right text-xs text-gray-500">
-                Line Total: ${(item.quantity * item.unitPrice).toFixed(2)}
+                Line Total: €{(item.quantity * item.unitPrice).toFixed(2)}
               </div>
             </div>
           ))}
@@ -279,7 +279,7 @@ export function InvoiceForm({ invoice, onSubmit, onCancel, isLoading }: InvoiceF
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Subtotal</span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
+            <span className="font-medium">€{subtotal.toFixed(2)}</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
@@ -321,7 +321,7 @@ export function InvoiceForm({ invoice, onSubmit, onCancel, isLoading }: InvoiceF
           </div>
           <div className="flex justify-between border-t border-gray-300 pt-2">
             <span className="text-sm font-semibold text-gray-900">Total</span>
-            <span className="text-lg font-bold text-gray-900">${total.toFixed(2)}</span>
+            <span className="text-lg font-bold text-gray-900">€{total.toFixed(2)}</span>
           </div>
         </div>
       </div>

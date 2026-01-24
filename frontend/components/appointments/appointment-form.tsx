@@ -234,7 +234,7 @@ export function AppointmentForm({ appointment, onSubmit, onCancel, isLoading }: 
                             <p className="text-xs text-gray-500">{service.description}</p>
                           )}
                           <p className="mt-1 text-xs text-gray-600">
-                            {service.durationMinutes} min • ${service.basePrice.toFixed(2)}
+                            {service.durationMinutes} min • €{service.basePrice.toFixed(2)}
                           </p>
                         </div>
                       </label>

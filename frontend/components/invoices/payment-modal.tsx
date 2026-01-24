@@ -41,7 +41,7 @@ export function PaymentModal({ isOpen, onClose, invoice }: PaymentModalProps) {
       newErrors.amount = 'Amount must be greater than 0';
     }
     if (formData.amount && parseFloat(formData.amount) > balanceDue) {
-      newErrors.amount = `Amount cannot exceed balance due ($${balanceDue.toFixed(2)})`;
+      newErrors.amount = `Amount cannot exceed balance due (€${balanceDue.toFixed(2)})`;
     }
 
     setErrors(newErrors);
@@ -104,15 +104,15 @@ export function PaymentModal({ isOpen, onClose, invoice }: PaymentModalProps) {
       <div className="mb-4 rounded-lg bg-gray-50 p-3">
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Invoice Total:</span>
-          <span className="font-medium">${invoice.total.toFixed(2)}</span>
+          <span className="font-medium">€{invoice.total.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-gray-600">Already Paid:</span>
-          <span className="font-medium">${(invoice.payments?.reduce((sum, p) => sum + p.amount, 0) || 0).toFixed(2)}</span>
+          <span className="font-medium">€{(invoice.payments?.reduce((sum, p) => sum + p.amount, 0) || 0).toFixed(2)}</span>
         </div>
         <div className="mt-2 flex justify-between border-t border-gray-300 pt-2">
           <span className="font-semibold text-gray-900">Balance Due:</span>
-          <span className="font-bold text-gray-900">${balanceDue.toFixed(2)}</span>
+          <span className="font-bold text-gray-900">€{balanceDue.toFixed(2)}</span>
         </div>
       </div>
 

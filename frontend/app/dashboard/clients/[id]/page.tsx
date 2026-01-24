@@ -284,7 +284,7 @@ export default function ClientDetailPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">${invoice.total.toFixed(2)}</p>
+                        <p className="text-sm font-medium text-gray-900">€{invoice.total.toFixed(2)}</p>
                         <Badge variant={statusColors[invoice.status] || 'neutral'} className="text-xs">
                           {invoice.status}
                         </Badge>
