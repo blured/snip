@@ -6,6 +6,9 @@ import type { EventObject, Options } from '@toast-ui/calendar';
 import type { Appointment, AppointmentStatus } from '@/types';
 import type { AppointmentCalendarProps } from './appointment-calendar-types';
 
+// TypeScript workaround for TUI Calendar constructor
+const Calendar = TUICalendar as any;
+
 const STATUS_COLORS: Record<AppointmentStatus, string> = {
   SCHEDULED: '#3b82f6',
   CONFIRMED: '#22c55e',
@@ -99,7 +102,7 @@ export function AppointmentCalendarVanilla({
       },
     };
 
-    const calendar = new TUICalendar(containerRef.current, options);
+    const calendar = new Calendar(containerRef.current, options);
     calendarRef.current = calendar;
 
     // Set up calendars (stylists)
