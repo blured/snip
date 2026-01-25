@@ -35,7 +35,7 @@ export function AppointmentCalendarVanilla({
   onAppointmentCreate,
 }: AppointmentCalendarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<InstanceType<typeof TUICalendar> | null>(null);
+  const calendarRef = useRef<any>(null);
 
   // Initialize calendar
   useEffect(() => {
