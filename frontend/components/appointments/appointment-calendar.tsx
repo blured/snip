@@ -99,12 +99,13 @@ export function AppointmentCalendar({
   onStylistFilterChange,
   onAppointmentCreate,
 }: AppointmentCalendarProps) {
-  const scheduleObj = React.useRef<any>(null);
+  const scheduleObj = React.useRef<ScheduleComponent>(null);
 
-  // Filter stylists based on selection
-  const filteredStylists = stylistFilter
-    ? stylists.filter((s) => s.id === stylistFilter)
-    : stylists;
+  // Filter stylists based on selection - memoized to prevent unnecessary re-renders
+  const filteredStylists = React.useMemo(
+    () => (stylistFilter ? stylists.filter((s) => s.id === stylistFilter) : stylists),
+    [stylistFilter, stylists]
+  );
 
   // Generate colors for each stylist
   const stylistColors = [
@@ -112,116 +113,136 @@ export function AppointmentCalendar({
     '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#6366f1',
   ];
 
-  // Transform stylists to Syncfusion resource format with departments
-  const departments = [
-    {
-      Id: '1',
-      Text: 'All Stylists',
-      Name: 'All Stylists',
-      Designation: 'All Departments',
-      Image: '',
-      Color: PRIMARY_COLOR,
-      GroupID: '',
-    },
-  ];
+  // Transform stylists to Syncfusion resource format with departments - memoized
+  const resourcesData: StylistResource[] = React.useMemo(() => {
+    const departments = [
+      {
+        Id: '1',
+        Text: 'All Stylists',
+        Name: 'All Stylists',
+        Designation: 'All Departments',
+        Image: '',
+        Color: PRIMARY_COLOR,
+        GroupID: '',
+      },
+    ];
 
-  const resourcesData: StylistResource[] = [
-    ...departments,
-    ...filteredStylists.map((stylist, index) => ({
-      Id: stylist.id,
-      Text: `${stylist.user.firstName} ${stylist.user.lastName}`,
-      Name: `${stylist.user.firstName} ${stylist.user.lastName}`,
-      Designation: 'Stylist',
-      Image: 'https://ej2.syncfusion.com/demos/src/schedule/images/football.svg',
-      Color: stylistColors[index % stylistColors.length],
-      GroupID: '1',
-    })),
-  ];
+    return [
+      ...departments,
+      ...filteredStylists.map((stylist, index) => ({
+        Id: stylist.id,
+        Text: `${stylist.user.firstName} ${stylist.user.lastName}`,
+        Name: `${stylist.user.firstName} ${stylist.user.lastName}`,
+        Designation: 'Stylist',
+        Image: 'https://ej2.syncfusion.com/demos/src/schedule/images/football.svg',
+        Color: stylistColors[index % stylistColors.length],
+        GroupID: '1',
+      })),
+    ];
+  }, [filteredStylists]);
 
-  // Transform appointments to Syncfusion format
-  const data: AppointmentData[] = appointments
-    .filter((appointment) => !stylistFilter || appointment.stylistId === stylistFilter)
-    .map((appointment) => {
-      const isEditable = EDITABLE_STATUSES.includes(appointment.status as any);
-      return {
-        Id: appointment.id,
-        Subject: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
-        StartTime: new Date(appointment.scheduledStart),
-        EndTime: new Date(appointment.scheduledEnd),
-        StylistId: appointment.stylistId,
-        IsReadonly: !isEditable,
-        CategoryColor: STATUS_COLORS[appointment.status],
-        Status: appointment.status,
-        Location: `${appointment.stylist.user.firstName} ${appointment.stylist.user.lastName}`,
-      };
-    });
+  // Transform appointments to Syncfusion format - memoized
+  const data: AppointmentData[] = React.useMemo(
+    () =>
+      appointments
+        .filter((appointment) => !stylistFilter || appointment.stylistId === stylistFilter)
+        .map((appointment) => {
+          const isEditable = EDITABLE_STATUSES.includes(appointment.status as any);
+          return {
+            Id: appointment.id,
+            Subject: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
+            StartTime: new Date(appointment.scheduledStart),
+            EndTime: new Date(appointment.scheduledEnd),
+            StylistId: appointment.stylistId,
+            IsReadonly: !isEditable,
+            CategoryColor: STATUS_COLORS[appointment.status],
+            Status: appointment.status,
+            Location: `${appointment.stylist.user.firstName} ${appointment.stylist.user.lastName}`,
+          };
+        }),
+    [appointments, stylistFilter]
+  );
 
-  const onActionBegin = (args: any) => {
+  const onActionBegin = React.useCallback((args: any) => {
+    // Explicitly allow navigation actions (toolbar buttons, date navigation)
+    const navigationActions = ['toolbarItemRendered', 'navigate', 'viewNavigate', 'dateNavigate'];
+    if (navigationActions.includes(args.requestType)) {
+      // Ensure these are never cancelled
+      return;
+    }
+
     // Allow event creation through UI
     if (args.requestType === 'eventCreate') {
       // Don't cancel - let the creation proceed
       // We'll handle it in actionComplete
-    }
-  };
-
-  const onActionComplete = async (args: any) => {
-    // Handle new appointment creation
-    if (args.requestType === 'eventCreate' && args.data && onAppointmentCreate) {
-      const newEvent: AppointmentData = Array.isArray(args.data) ? args.data[0] : args.data;
-      onAppointmentCreate({
-        startTime: new Date(newEvent.StartTime),
-        endTime: new Date(newEvent.EndTime),
-        stylistId: newEvent.StylistId,
-      });
       return;
     }
+  }, []);
 
-    // Handle drag and drop / resize
-    const validTypes = ['eventChange', 'eventRemoved', 'eventDragged', 'eventResized'];
-    if (validTypes.includes(args.requestType) && args.data) {
-      const changedData: AppointmentData = Array.isArray(args.data)
-        ? args.data[0]
-        : args.data;
-
-      if (!onEventDrop) return;
-
-      try {
-        await onEventDrop(
-          changedData.Id,
-          new Date(changedData.StartTime),
-          new Date(changedData.EndTime),
-          changedData.StylistId
-        );
-      } catch (error) {
-        console.error('Failed to update appointment:', error);
+  const onActionComplete = React.useCallback(
+    async (args: any) => {
+      // Handle new appointment creation
+      if (args.requestType === 'eventCreate' && args.data && onAppointmentCreate) {
+        const newEvent: AppointmentData = Array.isArray(args.data) ? args.data[0] : args.data;
+        onAppointmentCreate({
+          startTime: new Date(newEvent.StartTime),
+          endTime: new Date(newEvent.EndTime),
+          stylistId: newEvent.StylistId,
+        });
+        return;
       }
-    }
-  };
 
-  const onPopupOpen = (args: any) => {
-    // Handle clicking on existing appointments
-    if (args.type === 'Editor' && args.data?.Id) {
-      args.cancel = true;
-      if (onEventClick) {
-        const appointment = appointments.find((a) => a.id === args.data.Id);
-        if (appointment) {
-          onEventClick(appointment);
+      // Handle drag and drop / resize
+      const validTypes = ['eventChange', 'eventRemoved', 'eventDragged', 'eventResized'];
+      if (validTypes.includes(args.requestType) && args.data) {
+        const changedData: AppointmentData = Array.isArray(args.data)
+          ? args.data[0]
+          : args.data;
+
+        if (!onEventDrop) return;
+
+        try {
+          await onEventDrop(
+            changedData.Id,
+            new Date(changedData.StartTime),
+            new Date(changedData.EndTime),
+            changedData.StylistId
+          );
+        } catch (error) {
+          console.error('Failed to update appointment:', error);
         }
       }
-      return;
-    }
+    },
+    [onAppointmentCreate, onEventDrop]
+  );
 
-    // Handle clicking on empty slots to create new appointment
-    if (args.type === 'Editor' && !args.data?.Id && onAppointmentCreate) {
-      args.cancel = true;
-      const cellData = args.data;
-      onAppointmentCreate({
-        startTime: new Date(cellData.StartTime || cellData.startTime),
-        endTime: new Date(cellData.EndTime || cellData.endTime),
-        stylistId: cellData.StylistId || stylistFilter || undefined,
-      });
-    }
-  };
+  const onPopupOpen = React.useCallback(
+    (args: any) => {
+      // Handle clicking on existing appointments
+      if (args.type === 'Editor' && args.data?.Id) {
+        args.cancel = true;
+        if (onEventClick) {
+          const appointment = appointments.find((a) => a.id === args.data.Id);
+          if (appointment) {
+            onEventClick(appointment);
+          }
+        }
+        return;
+      }
+
+      // Handle clicking on empty slots to create new appointment
+      if (args.type === 'Editor' && !args.data?.Id && onAppointmentCreate) {
+        args.cancel = true;
+        const cellData = args.data;
+        onAppointmentCreate({
+          startTime: new Date(cellData.StartTime || cellData.startTime),
+          endTime: new Date(cellData.EndTime || cellData.endTime),
+          stylistId: cellData.StylistId || stylistFilter || undefined,
+        });
+      }
+    },
+    [appointments, onEventClick, onAppointmentCreate, stylistFilter]
+  );
 
   // Stylist dropdown fields
   const specialistFields = {
@@ -464,6 +485,7 @@ export function AppointmentCalendar({
             actionComplete={onActionComplete}
             popupOpen={onPopupOpen}
             readonly={false}
+            allowKeyboardInteraction={true}
           >
             <ResourcesDirective>
               <ResourceDirective
