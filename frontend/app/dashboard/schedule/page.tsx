@@ -1,15 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
+import { AppointmentCalendar } from '@/components/appointments/appointment-calendar';
 import { AppointmentModal } from '@/components/appointments/appointment-modal';
-
-const AppointmentCalendar = dynamic(
-  () => import('@/components/appointments/appointment-calendar').then(mod => ({ default: mod.AppointmentCalendar })),
-  { ssr: false }
-);
 import {
   CalendarSettingsModal,
   useCalendarSettings,

@@ -1,14 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-
-const AppointmentCalendar = dynamic(
-  () => import('@/components/appointments/appointment-calendar').then(mod => ({ default: mod.AppointmentCalendar })),
-  { ssr: false }
-);
+import { AppointmentCalendar } from '@/components/appointments/appointment-calendar';
+import { useCalendarSettings } from '@/components/appointments/calendar-settings-modal';
 import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments';
 import { useStylists } from '@/hooks/use-stylists';
 import toast from 'react-hot-toast';
@@ -21,6 +17,7 @@ export default function ClientAppointmentsPage() {
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
   const updateAppointment = useUpdateAppointment();
+  const { settings } = useCalendarSettings();
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
 
@@ -76,6 +73,7 @@ export default function ClientAppointmentsPage() {
         appointments={appointments ?? []}
         stylists={stylists ?? []}
         stylistFilter=""
+        calendarSettings={settings}
         onEventClick={handleEventClick}
         onEventDrop={async () => {
           toast.error('Please contact the salon to reschedule');
