@@ -1,38 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { registerLicense } from '@syncfusion/ej2-base';
-import {
-  ScheduleComponent,
-  ViewsDirective,
-  ViewDirective,
-  Day,
-  Week,
-  WorkWeek,
-  Month,
-  TimelineViews,
-  TimelineMonth,
-  ResourcesDirective,
-  ResourceDirective,
-  Inject,
-} from '@syncfusion/ej2-react-schedule';
-import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
+import Calendar from '@toast-ui/react-calendar';
+import type { EventObject, Options } from '@toast-ui/calendar';
 import type { Appointment, AppointmentStatus, Stylist } from '@/types';
 import { CalendarSettings } from './calendar-settings-modal';
-
-// Register Syncfusion license
-const licenseKey = process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE || 'ORg4AjUWIQA/Gnt2VVhiQlFac1pbWlHfFpVFpbWlpXCVJVFRPAH0AQEA1UVNVVVPXVNDVUdUR0c=';
-registerLicense(licenseKey);
-
-// Import Syncfusion CSS
-import '@syncfusion/ej2-base/styles/material.css';
-import '@syncfusion/ej2-buttons/styles/material.css';
-import '@syncfusion/ej2-calendars/styles/material.css';
-import '@syncfusion/ej2-dropdowns/styles/material.css';
-import '@syncfusion/ej2-inputs/styles/material.css';
-import '@syncfusion/ej2-navigations/styles/material.css';
-import '@syncfusion/ej2-popups/styles/material.css';
-import '@syncfusion/ej2-react-schedule/styles/material.css';
 
 interface AppointmentCalendarProps {
   appointments: Appointment[];
@@ -59,32 +31,11 @@ const STATUS_COLORS: Record<AppointmentStatus, string> = {
   NO_SHOW: '#ef4444',
 };
 
-// Syncfusion purple theme colors
-const PRIMARY_COLOR = '#7575FF';
-const HOVER_COLOR = '#f5f5f5';
-
-type AppointmentData = {
-  Id: string;
-  Subject: string;
-  StartTime: Date;
-  EndTime: Date;
-  StylistId: string;
-  IsReadonly?: boolean;
-  CategoryColor: string;
-  Status: AppointmentStatus;
-  Description?: string;
-  Location?: string;
-};
-
-type StylistResource = {
-  Id: string;
-  Text: string;
-  Name: string;
-  Designation: string;
-  Image: string;
-  Color: string;
-  GroupID: string;
-};
+// Stylist colors for calendar visual grouping
+const STYLIST_COLORS = [
+  '#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6',
+  '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#6366f1',
+];
 
 // Can only edit appointments that are SCHEDULED, CONFIRMED, or IN_PROGRESS
 const EDITABLE_STATUSES = ['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS'] as const;
@@ -99,450 +50,386 @@ export function AppointmentCalendar({
   onStylistFilterChange,
   onAppointmentCreate,
 }: AppointmentCalendarProps) {
-  const scheduleObj = React.useRef<ScheduleComponent>(null);
+  const calendarRef = React.useRef<Calendar>(null);
+  const [isMounted, setIsMounted] = React.useState(false);
 
-  // Filter stylists based on selection - memoized to prevent unnecessary re-renders
-  const filteredStylists = React.useMemo(
-    () => (stylistFilter ? stylists.filter((s) => s.id === stylistFilter) : stylists),
-    [stylistFilter, stylists]
-  );
-
-  // Generate colors for each stylist
-  const stylistColors = [
-    '#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6',
-    '#ec4899', '#06b6d4', '#f97316', '#14b8a6', '#6366f1',
-  ];
-
-  // Transform stylists to Syncfusion resource format with departments - memoized
-  const resourcesData: StylistResource[] = React.useMemo(() => {
-    const departments = [
-      {
-        Id: '1',
-        Text: 'All Stylists',
-        Name: 'All Stylists',
-        Designation: 'All Departments',
-        Image: '',
-        Color: PRIMARY_COLOR,
-        GroupID: '',
-      },
-    ];
-
-    return [
-      ...departments,
-      ...filteredStylists.map((stylist, index) => ({
-        Id: stylist.id,
-        Text: `${stylist.user.firstName} ${stylist.user.lastName}`,
-        Name: `${stylist.user.firstName} ${stylist.user.lastName}`,
-        Designation: 'Stylist',
-        Image: 'https://ej2.syncfusion.com/demos/src/schedule/images/football.svg',
-        Color: stylistColors[index % stylistColors.length],
-        GroupID: '1',
-      })),
-    ];
-  }, [filteredStylists]);
-
-  // Transform appointments to Syncfusion format - memoized
-  const data: AppointmentData[] = React.useMemo(
-    () =>
-      appointments
-        .filter((appointment) => !stylistFilter || appointment.stylistId === stylistFilter)
-        .map((appointment) => {
-          const isEditable = EDITABLE_STATUSES.includes(appointment.status as any);
-          return {
-            Id: appointment.id,
-            Subject: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
-            StartTime: new Date(appointment.scheduledStart),
-            EndTime: new Date(appointment.scheduledEnd),
-            StylistId: appointment.stylistId,
-            IsReadonly: !isEditable,
-            CategoryColor: STATUS_COLORS[appointment.status],
-            Status: appointment.status,
-            Location: `${appointment.stylist.user.firstName} ${appointment.stylist.user.lastName}`,
-          };
-        }),
-    [appointments, stylistFilter]
-  );
-
-  const onActionBegin = React.useCallback((args: any) => {
-    // Explicitly allow navigation actions (toolbar buttons, date navigation)
-    const navigationActions = ['toolbarItemRendered', 'navigate', 'viewNavigate', 'dateNavigate'];
-    if (navigationActions.includes(args.requestType)) {
-      // Ensure these are never cancelled
-      return;
-    }
-
-    // Allow event creation through UI
-    if (args.requestType === 'eventCreate') {
-      // Don't cancel - let the creation proceed
-      // We'll handle it in actionComplete
-      return;
-    }
+  // Ensure component only renders on client-side
+  React.useEffect(() => {
+    setIsMounted(true);
   }, []);
 
-  const onActionComplete = React.useCallback(
-    async (args: any) => {
-      // Handle new appointment creation
-      if (args.requestType === 'eventCreate' && args.data && onAppointmentCreate) {
-        const newEvent: AppointmentData = Array.isArray(args.data) ? args.data[0] : args.data;
-        onAppointmentCreate({
-          startTime: new Date(newEvent.StartTime),
-          endTime: new Date(newEvent.EndTime),
-          stylistId: newEvent.StylistId,
-        });
-        return;
+  // Transform stylists to TUI calendars
+  const calendars = React.useMemo(() => {
+    return stylists.map((stylist, index) => ({
+      id: stylist.id,
+      name: `${stylist.user.firstName} ${stylist.user.lastName}`,
+      backgroundColor: STYLIST_COLORS[index % STYLIST_COLORS.length],
+      borderColor: STYLIST_COLORS[index % STYLIST_COLORS.length],
+      dragBackgroundColor: STYLIST_COLORS[index % STYLIST_COLORS.length],
+    }));
+  }, [stylists]);
+
+  // Filter appointments based on stylist filter
+  const filteredAppointments = React.useMemo(() => {
+    return stylistFilter
+      ? appointments.filter((a) => a.stylistId === stylistFilter)
+      : appointments;
+  }, [appointments, stylistFilter]);
+
+  // Transform appointments to TUI events
+  const events = React.useMemo(() => {
+    return filteredAppointments.map((appointment) => {
+      const isEditable = EDITABLE_STATUSES.includes(appointment.status as any);
+      const statusColor = STATUS_COLORS[appointment.status];
+
+      return {
+        id: appointment.id,
+        calendarId: appointment.stylistId,
+        title: `${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
+        category: 'time' as const,
+        start: new Date(appointment.scheduledStart),
+        end: new Date(appointment.scheduledEnd),
+        isReadOnly: !isEditable,
+        backgroundColor: statusColor,
+        borderColor: statusColor,
+        color: '#ffffff',
+        customStyle: {
+          fontSize: '13px',
+          fontWeight: '500',
+        },
+        raw: appointment, // Store original appointment for click handler
+      };
+    });
+  }, [filteredAppointments]);
+
+  // Handle clicking on an event
+  const handleClickEvent = React.useCallback(
+    (info: { event: EventObject; nativeEvent: MouseEvent }) => {
+      const appointment = filteredAppointments.find((a) => a.id === info.event.id);
+      if (appointment && onEventClick) {
+        onEventClick(appointment);
       }
+    },
+    [filteredAppointments, onEventClick]
+  );
 
-      // Handle drag and drop / resize
-      const validTypes = ['eventChange', 'eventRemoved', 'eventDragged', 'eventResized'];
-      if (validTypes.includes(args.requestType) && args.data) {
-        const changedData: AppointmentData = Array.isArray(args.data)
-          ? args.data[0]
-          : args.data;
+  // Handle creating new event by clicking empty space
+  const handleBeforeCreateEvent = React.useCallback(
+    (eventData: {
+      start: Date;
+      end: Date;
+      isAllday: boolean;
+      calendarId?: string;
+    }) => {
+      if (onAppointmentCreate) {
+        onAppointmentCreate({
+          startTime: eventData.start,
+          endTime: eventData.end,
+          stylistId: eventData.calendarId || stylistFilter || undefined,
+        });
+      }
+      return false; // Prevent default event creation
+    },
+    [onAppointmentCreate, stylistFilter]
+  );
 
-        if (!onEventDrop) return;
+  // Handle drag/drop or resize event
+  const handleBeforeUpdateEvent = React.useCallback(
+    async (updateData: {
+      event: EventObject;
+      changes: Partial<EventObject>;
+    }) => {
+      const { event, changes } = updateData;
+
+      if (onEventDrop) {
+        const newStart = changes.start || event.start;
+        const newEnd = changes.end || event.end;
+        const newCalendarId = changes.calendarId || event.calendarId;
 
         try {
           await onEventDrop(
-            changedData.Id,
-            new Date(changedData.StartTime),
-            new Date(changedData.EndTime),
-            changedData.StylistId
+            event.id,
+            newStart as Date,
+            newEnd as Date,
+            newCalendarId as string
           );
         } catch (error) {
           console.error('Failed to update appointment:', error);
         }
       }
+
+      return false; // We handle updates via API, prevent default
     },
-    [onAppointmentCreate, onEventDrop]
+    [onEventDrop]
   );
 
-  const onPopupOpen = React.useCallback(
-    (args: any) => {
-      // Handle clicking on existing appointments
-      if (args.type === 'Editor' && args.data?.Id) {
-        args.cancel = true;
-        if (onEventClick) {
-          const appointment = appointments.find((a) => a.id === args.data.Id);
-          if (appointment) {
-            onEventClick(appointment);
-          }
-        }
-        return;
+  // Calendar options
+  const calendarOptions = React.useMemo<Options>(() => {
+    const view = calendarSettings?.currentView || 'week';
+    const startHour = parseInt(calendarSettings?.startHour?.split(':')[0] || '9');
+    const endHour = parseInt(calendarSettings?.endHour?.split(':')[0] || '18');
+    const firstDayOfWeek = calendarSettings?.firstDayOfWeek || 1;
+
+    return {
+      defaultView: view,
+      useFormPopup: false,
+      useDetailPopup: false,
+      isReadOnly: false,
+      week: {
+        startDayOfWeek: firstDayOfWeek,
+        dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        hourStart: startHour,
+        hourEnd: endHour,
+        taskView: false,
+        eventView: ['time'],
+        collapseDuplicateEvents: {
+          getDuplicateEvents: (targetEvent: EventObject, events: EventObject[]) => {
+            return events.filter(event =>
+              event.calendarId === targetEvent.calendarId &&
+              new Date(event.start).getTime() === new Date(targetEvent.start).getTime()
+            );
+          },
+          getMainEvent: (events: EventObject[]) => events[0],
+        },
+      },
+      month: {
+        startDayOfWeek: firstDayOfWeek,
+        dayNames: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        visibleWeeksCount: 0, // Auto-calculate
+      },
+      timezone: {
+        zones: [],
+      },
+      theme: {
+        common: {
+          border: '1px solid #e5e7eb',
+          backgroundColor: '#ffffff',
+          holiday: { color: '#ef4444' },
+          saturday: { color: '#374151' },
+          dayName: { color: '#374151' },
+          today: { color: '#7575FF' },
+        },
+        week: {
+          today: {
+            color: '#7575FF',
+            backgroundColor: 'rgba(117, 117, 255, 0.05)',
+          },
+          pastDay: { color: '#9ca3af' },
+          panelResizer: { border: '1px solid #e5e7eb' },
+          dayName: {
+            borderLeft: 'none',
+            borderTop: '1px solid #e5e7eb',
+            borderBottom: '1px solid #e5e7eb',
+            backgroundColor: '#f9fafb',
+          },
+          weekend: { backgroundColor: '#f9fafb' },
+          nowIndicatorLabel: { color: '#7575FF' },
+          nowIndicatorPast: { border: '1px dashed #7575FF' },
+          nowIndicatorBullet: { backgroundColor: '#7575FF' },
+          nowIndicatorToday: { border: '1px solid #7575FF' },
+          nowIndicatorFuture: { border: 'none' },
+          pastTime: { color: '#9ca3af' },
+          futureTime: { color: '#374151' },
+          gridSelection: {
+            backgroundColor: 'rgba(117, 117, 255, 0.1)',
+            border: '1px solid #7575FF',
+          },
+        },
+        month: {
+          dayName: {
+            borderLeft: 'none',
+            backgroundColor: '#f9fafb',
+          },
+          holidayExceptThisMonth: { color: '#f87171' },
+          dayExceptThisMonth: { color: '#d1d5db' },
+          weekend: { backgroundColor: '#f9fafb' },
+          moreView: {
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 2px 6px 0 rgba(0, 0, 0, 0.1)',
+            backgroundColor: '#ffffff',
+            width: 320,
+            height: 200,
+          },
+          moreViewTitle: {
+            backgroundColor: '#f9fafb',
+          },
+          gridCell: {
+            headerHeight: 40,
+            footerHeight: 10,
+          },
+        },
+      },
+      gridSelection: true,
+      template: {
+        time(event: EventObject) {
+          return `<span style="color: white; font-weight: 500;">${event.title}</span>`;
+        },
+        allday(event: EventObject) {
+          return `<span style="color: white; font-weight: 500;">${event.title}</span>`;
+        },
+      },
+    };
+  }, [calendarSettings]);
+
+  // Update calendar view when settings change
+  React.useEffect(() => {
+    if (calendarRef.current && isMounted) {
+      const calendarInstance = calendarRef.current.getInstance();
+      if (calendarInstance && calendarSettings?.currentView) {
+        calendarInstance.changeView(calendarSettings.currentView);
       }
-
-      // Handle clicking on empty slots to create new appointment
-      if (args.type === 'Editor' && !args.data?.Id && onAppointmentCreate) {
-        args.cancel = true;
-        const cellData = args.data;
-        onAppointmentCreate({
-          startTime: new Date(cellData.StartTime || cellData.startTime),
-          endTime: new Date(cellData.EndTime || cellData.endTime),
-          stylistId: cellData.StylistId || stylistFilter || undefined,
-        });
-      }
-    },
-    [appointments, onEventClick, onAppointmentCreate, stylistFilter]
-  );
-
-  // Stylist dropdown fields
-  const specialistFields = {
-    text: 'Text',
-    value: 'Id',
-    iconCss: 'e-caret e-icons',
-    groupBy: 'GroupID',
-  };
-
-  const specialistTemplate = (props: any) => {
-    if (props.Name === 'All Stylists') {
-      return (
-        <div className="template-wrap">
-          <div className="specialist-name" style={{ color: '#7575FF' }}>
-            {props.Text}
-          </div>
-          <div className="specialist-role" style={{ fontSize: '12px', color: '#666' }}>
-            All stylists combined
-          </div>
-        </div>
-      );
     }
+  }, [calendarSettings?.currentView, isMounted]);
 
-    // Find the stylist to get their photo
-    const stylist = stylists.find(s => s.id === props.Id);
-    const imageUrl = stylist?.photo || props.Image;
-
+  // Don't render until mounted on client
+  if (!isMounted) {
     return (
-      <div className="template-wrap">
-        <div className="specialist-image">
-          <img
-            src={imageUrl}
-            alt={props.Name}
-            style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-          />
-        </div>
-        <div className="specialist-info">
-          <div className="specialist-name" style={{ color: '#333' }}>
-            {props.Name}
-          </div>
-          <div className="specialist-role" style={{ fontSize: '12px', color: '#666' }}>
-            {props.Designation}
+      <div className="calendar-wrapper">
+        <div className="calendar-layout">
+          <div className="calendar-main" style={{ padding: '50px', textAlign: 'center' }}>
+            <p>Loading calendar...</p>
           </div>
         </div>
       </div>
     );
-  };
-
-  const fieldMapping = {
-    id: 'Id',
-    subject: { name: 'Subject', title: 'Client' },
-    startTime: { name: 'StartTime', title: 'Start Time' },
-    endTime: { name: 'EndTime', title: 'End Time' },
-    location: { name: 'Location', title: 'Stylist' },
-  };
+  }
 
   return (
-    <div className="planner-calendar-wrapper">
+    <div className="calendar-wrapper">
       <style>{`
-        /* Syncfusion Planner Theme */
-        .planner-calendar-wrapper {
-          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif, -apple-system, BlinkMacSystemFont;
-          letter-spacing: 0.05px;
+        .calendar-wrapper {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
           background: linear-gradient(-141deg, #FBFAFF 14%, #FBFAFF 100%);
           min-height: calc(100vh - 120px);
         }
 
-        .planner-calendar-wrapper .e-schedule .e-schedule-toolbar .e-schedule-toolbar-container {
-          background: white;
-          border-bottom: 1px solid #e0e0e0;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-resource-cells {
-          background-color: white;
-          border: none;
-          border-right: 1px solid #e0e0e0;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-header-cells .e-header-cell {
-          text-align: center;
-          color: #333;
-          font-size: 13px;
-          font-weight: 500;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-date-header-wrap {
-          background: white;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-header-container {
-          border-bottom: 1px solid #e0e0e0;
-          border-left: none !important;
-          border-right: none !important;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-active-view .e-active-view-header {
-          color: #7575FF;
-          font-weight: 600;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-active-view:hover .e-active-view-header {
-          color: #7575FF;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-header-cells {
-          font-weight: 500;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-work-cells {
-          background-color: white;
-        }
-
-        .planner-calendar-wrapper .e-schedule .e-content-wrap {
-          background-color: white;
-        }
-
-        .drag-sample-wrapper {
+        .calendar-layout {
           display: flex;
-          justify-content: space-between;
+          gap: 24px;
           padding: 30px 50px;
-          gap: 25px;
         }
 
-        .schedule-container {
+        .calendar-main {
           flex: 1;
           min-width: 0;
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
         }
 
-        .sidebar-right {
+        .calendar-sidebar {
           width: 280px;
+          flex-shrink: 0;
           display: flex;
           flex-direction: column;
-          gap: 30px;
-          flex-shrink: 0;
+          gap: 24px;
         }
 
-        .template-wrap {
-          display: flex;
-          align-items: center;
-          gap: 12px;
+        .sidebar-section {
+          background: white;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .specialist-image img {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-        }
-
-        .specialist-name {
-          font-size: 13px;
-          font-weight: 500;
-        }
-
-        .specialist-role {
-          font-size: 12px;
-          color: #666;
-        }
-
-        .waiting-list-section {
-          margin-top: 20px;
-        }
-
-        .waiting-list-title {
-          font-size: 18px;
+        .sidebar-title {
+          font-size: 14px;
           font-weight: 600;
-          color: #333;
-          margin-bottom: 15px;
-          padding-bottom: 10px;
-          border-bottom: 2px solid #7575FF;
+          color: #374151;
+          margin-bottom: 12px;
+        }
+
+        .stylist-filter {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          font-size: 14px;
+          color: #374151;
+          background: white;
+          cursor: pointer;
+          transition: border-color 0.2s;
+        }
+
+        .stylist-filter:hover {
+          border-color: #7575FF;
+        }
+
+        .stylist-filter:focus {
+          outline: none;
+          border-color: #7575FF;
+          box-shadow: 0 0 0 3px rgba(117, 117, 255, 0.1);
         }
 
         .waiting-list-content {
           font-size: 13px;
-          color: #666;
-          line-height: 1.5;
+          color: #6b7280;
+          line-height: 1.6;
         }
 
-        /* Appointment styling */
-        .e-schedule .e-appointment {
-          border-radius: 4px;
-        }
-
-        /* Specialist dropdown styling */
-        .planner-calendar-wrapper .e-dropdown {
-          width: 100%;
-        }
-
-        .planner-calendar-wrapper .e-dropdown-popup {
-          max-height: 400px;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .planner-calendar-wrapper .e-list-item {
-          height: 65px;
-          padding: 0 15px;
-          margin: 5px 0;
-          border-radius: 4px;
-        }
-
-        .planner-calendar-wrapper .e-list-item:hover {
-          background-color: ${HOVER_COLOR};
-        }
-
-        .planner-calendar-wrapper .e-list-item.e-selected {
-          background-color: #f0f0ff;
+        /* TUI Calendar customization */
+        .toastui-calendar-template-time {
+          padding: 4px 8px !important;
         }
 
         /* Mobile responsive */
         @media (max-width: 1024px) {
-          .drag-sample-wrapper {
+          .calendar-layout {
             flex-direction: column;
             padding: 20px;
           }
 
-          .sidebar-right {
+          .calendar-sidebar {
             width: 100%;
           }
         }
       `}</style>
-      <div className="drag-sample-wrapper">
-        <div className="schedule-container">
-          <ScheduleComponent
-            ref={scheduleObj}
-            width="100%"
+
+      <div className="calendar-layout">
+        <div className="calendar-main">
+          <Calendar
+            ref={calendarRef}
             height="750px"
-            selectedDate={new Date()}
-            currentView={calendarSettings?.currentView || 'TimelineWeek'}
-            firstDayOfWeek={calendarSettings?.firstDayOfWeek || 1}
-            eventSettings={{
-              dataSource: data as any,
-              fields: fieldMapping,
-            }}
-            group={{ resources: ['Departments', 'Stylists'] }}
-            resources={resourcesData as any}
-            allowDragAndDrop={true}
-            allowResizing={true}
-            showQuickInfo={false}
-            actionBegin={onActionBegin}
-            actionComplete={onActionComplete}
-            popupOpen={onPopupOpen}
-            readonly={false}
-            allowKeyboardInteraction={true}
-          >
-            <ResourcesDirective>
-              <ResourceDirective
-                field="StylistId"
-                title="Stylist"
-                name="Stylists"
-                textField="Text"
-                idField="Id"
-                colorField="Color"
-                groupIDField="GroupID"
-              />
-            </ResourcesDirective>
-            <ViewsDirective>
-              <ViewDirective option="Day" startHour={calendarSettings?.startHour || '09:00'} endHour={calendarSettings?.endHour || '18:00'} interval={calendarSettings?.interval || 30} />
-              <ViewDirective option="Week" startHour={calendarSettings?.startHour || '09:00'} endHour={calendarSettings?.endHour || '18:00'} interval={calendarSettings?.interval || 30} />
-              <ViewDirective option="WorkWeek" startHour={calendarSettings?.startHour || '09:00'} endHour={calendarSettings?.endHour || '18:00'} interval={calendarSettings?.interval || 30} />
-              <ViewDirective option="Month" />
-              <ViewDirective option="TimelineDay" group={{ allowEdit: false }} interval={calendarSettings?.interval || 30} />
-              <ViewDirective option="TimelineWeek" group={{ allowEdit: false }} interval={calendarSettings?.interval || 30} />
-              <ViewDirective option="TimelineWorkWeek" group={{ allowEdit: false }} interval={calendarSettings?.interval || 30} />
-              <ViewDirective option="TimelineMonth" group={{ allowEdit: false }} />
-            </ViewsDirective>
-            <Inject services={[Day, Week, WorkWeek, Month, TimelineViews, TimelineMonth]} />
-          </ScheduleComponent>
+            view={calendarSettings?.currentView || 'week'}
+            calendars={calendars}
+            events={events}
+            {...calendarOptions}
+            onClickEvent={handleClickEvent}
+            onBeforeCreateEvent={handleBeforeCreateEvent}
+            onBeforeUpdateEvent={handleBeforeUpdateEvent}
+          />
         </div>
 
-        {/* Right Sidebar with Specialist Dropdown and Waiting List */}
-        <div className="sidebar-right">
-          {/* Specialist Dropdown */}
-          <div>
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Filter by Stylist</label>
-            <DropDownListComponent
-              id="specialistDropdown"
-              dataSource={resourcesData as any[]}
-              fields={specialistFields as any}
-              placeholder="All Stylists"
-              value={stylistFilter || '1'}
-              headerTemplate={specialistTemplate as any}
-              itemTemplate={specialistTemplate as any}
-              popupHeight="400px"
-              cssClass="specialist-dropdown"
-              change={(args: any) => {
-                // Handle stylist filter change
-                const selectedId = args.itemData?.Id || args.value;
-                if (onStylistFilterChange && selectedId) {
-                  onStylistFilterChange(selectedId === '1' ? '' : selectedId);
-                }
-              }}
-            />
-          </div>
+        {/* Right Sidebar */}
+        <div className="calendar-sidebar">
+          {/* Stylist Filter */}
+          {onStylistFilterChange && (
+            <div className="sidebar-section">
+              <label className="sidebar-title">Filter by Stylist</label>
+              <select
+                className="stylist-filter"
+                value={stylistFilter || ''}
+                onChange={(e) => onStylistFilterChange(e.target.value)}
+              >
+                <option value="">All Stylists</option>
+                {stylists.map((stylist) => (
+                  <option key={stylist.id} value={stylist.id}>
+                    {stylist.user.firstName} {stylist.user.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Waiting List Section */}
-          <div className="waiting-list-section">
-            <div className="waiting-list-title">Waiting List</div>
+          <div className="sidebar-section">
+            <div className="sidebar-title">Waiting List</div>
             <div className="waiting-list-content">
               <p className="mb-2">Appointments with time conflicts appear here.</p>
-              <p className="text-xs text-gray-400">Drag conflicted appointments to the calendar to reschedule.</p>
+              <p className="text-xs text-gray-400">
+                Drag conflicted appointments to the calendar to reschedule.
+              </p>
             </div>
           </div>
         </div>

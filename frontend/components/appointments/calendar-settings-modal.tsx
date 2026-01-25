@@ -1,14 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { DropDownListComponent, ChangeEventArgs } from '@syncfusion/ej2-react-dropdowns';
-import { DialogComponent } from '@syncfusion/ej2-react-popups';
-import { View } from '@syncfusion/ej2-react-schedule';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, X } from 'lucide-react';
 
 export interface CalendarSettings {
-  currentView: View;
+  currentView: 'day' | 'week' | 'month';
   startHour: string;
   endHour: string;
   interval: number;
@@ -16,7 +13,7 @@ export interface CalendarSettings {
 }
 
 const DEFAULT_SETTINGS: CalendarSettings = {
-  currentView: 'TimelineWeek',
+  currentView: 'week',
   startHour: '09:00',
   endHour: '18:00',
   interval: 30,
@@ -25,50 +22,45 @@ const DEFAULT_SETTINGS: CalendarSettings = {
 
 // Dropdown options
 const VIEWS = [
-  { Value: 'Day', Text: 'Daily' },
-  { Value: 'Week', Text: 'Weekly' },
-  { Value: 'Month', Text: 'Monthly' },
-  { Value: 'TimelineDay', Text: 'Timeline Day' },
-  { Value: 'TimelineWeek', Text: 'Timeline Week' },
-  { Value: 'TimelineMonth', Text: 'Timeline Month' },
+  { value: 'day', label: 'Daily' },
+  { value: 'week', label: 'Weekly' },
+  { value: 'month', label: 'Monthly' },
 ];
 
 const START_HOURS = [
-  { Value: '08:00', Text: '8:00 AM' },
-  { Value: '09:00', Text: '9:00 AM' },
-  { Value: '10:00', Text: '10:00 AM' },
-  { Value: '11:00', Text: '11:00 AM' },
-  { Value: '12:00', Text: '12:00 PM' },
+  { value: '08:00', label: '8:00 AM' },
+  { value: '09:00', label: '9:00 AM' },
+  { value: '10:00', label: '10:00 AM' },
+  { value: '11:00', label: '11:00 AM' },
+  { value: '12:00', label: '12:00 PM' },
 ];
 
 const END_HOURS = [
-  { Value: '16:00', Text: '4:00 PM' },
-  { Value: '17:00', Text: '5:00 PM' },
-  { Value: '18:00', Text: '6:00 PM' },
-  { Value: '19:00', Text: '7:00 PM' },
-  { Value: '20:00', Text: '8:00 PM' },
-  { Value: '21:00', Text: '9:00 PM' },
+  { value: '16:00', label: '4:00 PM' },
+  { value: '17:00', label: '5:00 PM' },
+  { value: '18:00', label: '6:00 PM' },
+  { value: '19:00', label: '7:00 PM' },
+  { value: '20:00', label: '8:00 PM' },
+  { value: '21:00', label: '9:00 PM' },
 ];
 
 const TIME_SLOTS = [
-  { Value: 10, Text: '10 mins' },
-  { Value: 20, Text: '20 mins' },
-  { Value: 30, Text: '30 mins' },
-  { Value: 60, Text: '60 mins' },
-  { Value: 120, Text: '120 mins' },
+  { value: 10, label: '10 mins' },
+  { value: 20, label: '20 mins' },
+  { value: 30, label: '30 mins' },
+  { value: 60, label: '60 mins' },
+  { value: 120, label: '120 mins' },
 ];
 
 const DAYS_OF_WEEK = [
-  { Value: 0, Text: 'Sunday' },
-  { Value: 1, Text: 'Monday' },
-  { Value: 2, Text: 'Tuesday' },
-  { Value: 3, Text: 'Wednesday' },
-  { Value: 4, Text: 'Thursday' },
-  { Value: 5, Text: 'Friday' },
-  { Value: 6, Text: 'Saturday' },
+  { value: 0, label: 'Sunday' },
+  { value: 1, label: 'Monday' },
+  { value: 2, label: 'Tuesday' },
+  { value: 3, label: 'Wednesday' },
+  { value: 4, label: 'Thursday' },
+  { value: 5, label: 'Friday' },
+  { value: 6, label: 'Saturday' },
 ];
-
-const fields = { text: 'Text', value: 'Value' };
 
 interface CalendarSettingsModalProps {
   isOpen: boolean;
@@ -89,131 +81,157 @@ export function CalendarSettingsModal({
     setLocalSettings(settings);
   }, [settings]);
 
-  const handleChange = (args: ChangeEventArgs) => {
-    const id = args.element?.getAttribute('id');
-    if (!id) return;
-
-    switch (id) {
-      case 'CurrentView':
-        setLocalSettings({ ...localSettings, currentView: args.value as View });
-        break;
-      case 'CalendarStart':
-        setLocalSettings({ ...localSettings, startHour: args.value as string });
-        break;
-      case 'CalendarEnd':
-        setLocalSettings({ ...localSettings, endHour: args.value as string });
-        break;
-      case 'Duration':
-        setLocalSettings({ ...localSettings, interval: args.value as number });
-        break;
-      case 'FirstDayOfWeek':
-        setLocalSettings({ ...localSettings, firstDayOfWeek: args.value as number });
-        break;
-    }
-  };
-
   const handleSave = () => {
     onSave(localSettings);
     onClose();
   };
 
-  const dialogClose = () => {
+  const handleCancel = () => {
     setLocalSettings(settings); // Reset to original
     onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <DialogComponent
-      width="400px"
-      visible={isOpen}
-      close={dialogClose}
-      header="Calendar Preferences"
-      showCloseIcon={true}
-      cssClass="calendar-settings-dialog"
-    >
-      <style>{`
-        .calendar-settings-dialog .e-dlg-content {
-          padding: 20px;
-        }
-        .calendar-settings-dialog .control-container {
-          padding-top: 16px;
-        }
-        .calendar-settings-dialog .label-text {
-          margin-left: 0;
-          font-weight: 600;
-          font-size: 12px;
-          color: #333;
-          letter-spacing: 0.33px;
-          padding-bottom: 7px;
-          display: block;
-        }
-        .calendar-settings-dialog .e-dropdown {
-          width: 100%;
-        }
-      `}</style>
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
+        onClick={handleCancel}
+        aria-hidden="true"
+      />
 
-      <div className="control-container">
-        <label className="label-text">Default View</label>
-        <DropDownListComponent
-          id="CurrentView"
-          dataSource={VIEWS}
-          fields={fields}
-          value={localSettings.currentView}
-          change={handleChange}
-        />
-      </div>
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Calendar Preferences</h2>
+            <button
+              onClick={handleCancel}
+              className="text-gray-400 hover:text-gray-500 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-      <div className="control-container">
-        <label className="label-text">Calendar Start Time</label>
-        <DropDownListComponent
-          id="CalendarStart"
-          dataSource={START_HOURS}
-          fields={fields}
-          value={localSettings.startHour}
-          change={handleChange}
-        />
-      </div>
+          {/* Content */}
+          <div className="px-6 py-4 space-y-5">
+            {/* Default View */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Default View
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={localSettings.currentView}
+                onChange={(e) =>
+                  setLocalSettings({
+                    ...localSettings,
+                    currentView: e.target.value as CalendarSettings['currentView'],
+                  })
+                }
+              >
+                {VIEWS.map((view) => (
+                  <option key={view.value} value={view.value}>
+                    {view.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      <div className="control-container">
-        <label className="label-text">Calendar End Time</label>
-        <DropDownListComponent
-          id="CalendarEnd"
-          dataSource={END_HOURS}
-          fields={fields}
-          value={localSettings.endHour}
-          change={handleChange}
-        />
-      </div>
+            {/* Calendar Start Time */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Calendar Start Time
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={localSettings.startHour}
+                onChange={(e) =>
+                  setLocalSettings({ ...localSettings, startHour: e.target.value })
+                }
+              >
+                {START_HOURS.map((hour) => (
+                  <option key={hour.value} value={hour.value}>
+                    {hour.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      <div className="control-container">
-        <label className="label-text">Slot Duration</label>
-        <DropDownListComponent
-          id="Duration"
-          dataSource={TIME_SLOTS}
-          fields={fields}
-          value={localSettings.interval}
-          change={handleChange}
-        />
-      </div>
+            {/* Calendar End Time */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Calendar End Time
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={localSettings.endHour}
+                onChange={(e) =>
+                  setLocalSettings({ ...localSettings, endHour: e.target.value })
+                }
+              >
+                {END_HOURS.map((hour) => (
+                  <option key={hour.value} value={hour.value}>
+                    {hour.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      <div className="control-container">
-        <label className="label-text">First Day of the Week</label>
-        <DropDownListComponent
-          id="FirstDayOfWeek"
-          dataSource={DAYS_OF_WEEK}
-          fields={fields}
-          value={localSettings.firstDayOfWeek}
-          change={handleChange}
-        />
-      </div>
+            {/* Slot Duration */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Slot Duration
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={localSettings.interval}
+                onChange={(e) =>
+                  setLocalSettings({ ...localSettings, interval: Number(e.target.value) })
+                }
+              >
+                {TIME_SLOTS.map((slot) => (
+                  <option key={slot.value} value={slot.value}>
+                    {slot.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      <div className="flex justify-end gap-3 mt-6">
-        <Button variant="ghost" onClick={dialogClose}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>Save Settings</Button>
+            {/* First Day of the Week */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                First Day of the Week
+              </label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={localSettings.firstDayOfWeek}
+                onChange={(e) =>
+                  setLocalSettings({ ...localSettings, firstDayOfWeek: Number(e.target.value) })
+                }
+              >
+                {DAYS_OF_WEEK.map((day) => (
+                  <option key={day.value} value={day.value}>
+                    {day.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <Button variant="ghost" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Save Settings</Button>
+          </div>
+        </div>
       </div>
-    </DialogComponent>
+    </>
   );
 }
 
@@ -226,7 +244,19 @@ export function useCalendarSettings() {
     const saved = localStorage.getItem('calendarSettings');
     if (saved) {
       try {
-        setSettings(JSON.parse(saved));
+        const parsedSettings = JSON.parse(saved);
+        // Ensure currentView is valid for TUI Calendar
+        if (['day', 'week', 'month'].includes(parsedSettings.currentView)) {
+          setSettings(parsedSettings);
+        } else {
+          // Migrate old timeline views to standard views
+          const migratedSettings = {
+            ...parsedSettings,
+            currentView: 'week' as const,
+          };
+          setSettings(migratedSettings);
+          localStorage.setItem('calendarSettings', JSON.stringify(migratedSettings));
+        }
       } catch (e) {
         console.error('Failed to parse calendar settings:', e);
       }

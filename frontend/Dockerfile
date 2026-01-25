@@ -36,6 +36,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy TUI Calendar packages (needed for dynamic imports and CSS)
+RUN mkdir -p node_modules/@toast-ui
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@toast-ui ./node_modules/@toast-ui
+
 USER nextjs
 
 EXPOSE 3001

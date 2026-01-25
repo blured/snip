@@ -17,6 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="stylesheet" href="/toastui-calendar.css" />
+      </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>
