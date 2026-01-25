@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import Calendar from '@toast-ui/calendar';
+import TUICalendar from '@toast-ui/calendar';
 import type { EventObject, Options } from '@toast-ui/calendar';
 import type { Appointment, AppointmentStatus } from '@/types';
 import type { AppointmentCalendarProps } from './appointment-calendar-types';
@@ -35,7 +35,7 @@ export function AppointmentCalendarVanilla({
   onAppointmentCreate,
 }: AppointmentCalendarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<Calendar | null>(null);
+  const calendarRef = useRef<TUICalendar | null>(null);
 
   // Initialize calendar
   useEffect(() => {
@@ -99,7 +99,7 @@ export function AppointmentCalendarVanilla({
       },
     };
 
-    const calendar = new Calendar(containerRef.current, options);
+    const calendar = new TUICalendar(containerRef.current, options);
     calendarRef.current = calendar;
 
     // Set up calendars (stylists)
