@@ -117,14 +117,14 @@ export function AppointmentCalendarVanilla({
     );
 
     // Event handlers
-    calendar.on('clickEvent', (info) => {
+    calendar.on('clickEvent', (info: any) => {
       const appointment = appointments.find((a) => a.id === info.event.id);
       if (appointment && onEventClick) {
         onEventClick(appointment);
       }
     });
 
-    calendar.on('beforeCreateEvent', (eventData) => {
+    calendar.on('beforeCreateEvent', (eventData: any) => {
       if (onAppointmentCreate) {
         onAppointmentCreate({
           startTime: eventData.start.toDate(),
@@ -135,7 +135,7 @@ export function AppointmentCalendarVanilla({
       return false; // Prevent default event creation
     });
 
-    calendar.on('beforeUpdateEvent', async ({ event, changes }) => {
+    calendar.on('beforeUpdateEvent', async ({ event, changes }: any) => {
       if (onEventDrop) {
         const newStart = changes.start ? changes.start.toDate() : event.start.toDate();
         const newEnd = changes.end ? changes.end.toDate() : event.end.toDate();
