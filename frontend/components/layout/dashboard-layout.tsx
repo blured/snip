@@ -67,7 +67,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Mobile header */}
         <header className="lg:hidden flex items-center justify-between bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
-          <h1 className="text-lg font-bold text-gray-900">Salon Manager</h1>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200"
@@ -79,6 +78,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Menu className="w-6 h-6 text-gray-700" />
             )}
           </button>
+          <h1 className="text-lg font-bold text-gray-900">Salon Manager</h1>
         </header>
 
         {/* Main content area */}
