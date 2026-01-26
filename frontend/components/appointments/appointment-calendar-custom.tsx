@@ -739,9 +739,16 @@ export function AppointmentCalendarCustom({
 
       return (
         <div className="flex-1 overflow-x-auto">
-          <div className={`grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px] ${gridClass}`}>
+          <div
+            className="grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px] overflow-x-auto"
+            style={{
+              gridTemplateColumns: calendarSettings?.includeSaturday
+                ? '50px repeat(6, minmax(100px, 1fr))'
+                : '50px repeat(5, minmax(100px, 1fr))'
+            }}
+          >
             {/* Header row */}
-            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50 w-[45px] sm:w-[50px] flex-shrink-0"></div>
+            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50 flex-shrink-0"></div>
             {workWeekDays.map((day, i) => (
               <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center">
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{day}</div>
@@ -754,7 +761,7 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-[45px] sm:w-[50px] flex-shrink-0">
+                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start flex-shrink-0">
                     {hour}:00
                   </div>
                   {workWeekDates.map((date) => {
@@ -821,9 +828,12 @@ export function AppointmentCalendarCustom({
 
       return (
         <div className="flex-1 overflow-x-auto">
-          <div className="grid grid-cols-8 gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px]">
+          <div
+            className="grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px] overflow-x-auto"
+            style={{ gridTemplateColumns: '50px repeat(7, minmax(100px, 1fr))' }}
+          >
             {/* Header row */}
-            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50 w-[45px] sm:w-[50px] flex-shrink-0"></div>
+            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50 flex-shrink-0"></div>
             {weekDates.map((date, i) => (
               <div key={date.toISOString()} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center">
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{dayNames[i]}</div>
@@ -836,7 +846,7 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-[45px] sm:w-[50px] flex-shrink-0">
+                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start flex-shrink-0">
                     {hour}:00
                   </div>
                   {weekDates.map((date) => {
