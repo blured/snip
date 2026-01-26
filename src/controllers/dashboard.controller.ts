@@ -19,13 +19,8 @@ export const getStats = async (_req: Request, res: Response): Promise<void> => {
       },
     });
 
-    // Active clients - users with CLIENT role who are active
-    const activeClients = await prisma.user.count({
-      where: {
-        role: 'CLIENT',
-        active: true,
-      },
-    });
+    // Active clients - count all clients (users with a Client profile)
+    const activeClients = await prisma.client.count();
 
     // Active stylists
     const activeStylists = await prisma.stylist.count({

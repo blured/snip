@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Client } from '@/types';
+import type { Client, Appointment, Invoice } from '@/types';
 
 export const clientsApi = {
   getAll: async (): Promise<Client[]> => {
@@ -26,12 +26,12 @@ export const clientsApi = {
     await apiClient.delete(`/api/clients/${id}`);
   },
 
-  getAppointments: async (id: string): Promise<any[]> => {
+  getAppointments: async (id: string): Promise<Appointment[]> => {
     const response = await apiClient.get(`/api/clients/${id}/appointments`);
     return response.data;
   },
 
-  getInvoices: async (id: string): Promise<any[]> => {
+  getInvoices: async (id: string): Promise<Invoice[]> => {
     const response = await apiClient.get(`/api/clients/${id}/invoices`);
     return response.data;
   },

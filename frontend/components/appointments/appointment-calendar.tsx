@@ -4,9 +4,9 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import type { AppointmentCalendarProps } from './appointment-calendar-types';
 
-// Dynamic import using vanilla TUI Calendar (no React wrapper)
+// Dynamic import using FullCalendar implementation
 const DynamicCalendar = dynamic(
-  () => import('./appointment-calendar-vanilla').then(mod => mod.AppointmentCalendarVanilla),
+  () => import('./appointment-calendar-impl').then(mod => mod.AppointmentCalendarImpl),
   {
     ssr: false,
     loading: () => (

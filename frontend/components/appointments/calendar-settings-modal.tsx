@@ -10,6 +10,7 @@ export interface CalendarSettings {
   endHour: string;
   interval: number;
   firstDayOfWeek: number;
+  includeSaturday: boolean;
 }
 
 const DEFAULT_SETTINGS: CalendarSettings = {
@@ -18,6 +19,7 @@ const DEFAULT_SETTINGS: CalendarSettings = {
   endHour: '18:00',
   interval: 30,
   firstDayOfWeek: 1, // Monday
+  includeSaturday: false,
 };
 
 // Dropdown options
@@ -219,6 +221,29 @@ export function CalendarSettingsModal({
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Work Week - Include Saturday */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Work Week Days
+                </label>
+                <p className="text-sm text-gray-500">
+                  {localSettings.includeSaturday ? 'Monday - Saturday' : 'Monday - Friday'}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={localSettings.includeSaturday}
+                  onChange={(e) =>
+                    setLocalSettings({ ...localSettings, includeSaturday: e.target.checked })
+                  }
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:bg-blue-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:content-[''] peer-checked:after:translate-x-full"></div>
+              </label>
             </div>
           </div>
 

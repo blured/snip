@@ -54,6 +54,32 @@ export function AppointmentForm({ appointment, newAppointmentData, onSubmit, onC
     }
   }, [newAppointmentData, appointment]);
 
+  // Auto-calculate end time based on selected services
+  useEffect(() => {
+    // Only auto-calculate for new appointments, not when editing
+    if (appointment) return;
+
+    // Only calculate if we have a start time
+    if (!formData.scheduledStart) return;
+
+    // Calculate total duration from selected services
+    const totalDuration = selectedServiceIds.reduce((total, serviceId) => {
+      const service = services?.find((s) => s.id === serviceId);
+      return total + (service?.durationMinutes || 0);
+    }, 0);
+
+    // Default to 60 minutes if no services selected
+    const durationToUse = totalDuration > 0 ? totalDuration : 60;
+
+    const startTime = new Date(formData.scheduledStart);
+    const endTime = new Date(startTime.getTime() + durationToUse * 60000);
+
+    setFormData((prev) => ({
+      ...prev,
+      scheduledEnd: endTime.toISOString().slice(0, 16),
+    }));
+  }, [selectedServiceIds, formData.scheduledStart, services, appointment]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
@@ -100,6 +126,23 @@ export function AppointmentForm({ appointment, newAppointmentData, onSubmit, onC
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // When start time changes, recalculate end time for new appointments
+    if (field === 'scheduledStart' && !appointment) {
+      const totalDuration = selectedServiceIds.reduce((total, serviceId) => {
+        const service = services?.find((s) => s.id === serviceId);
+        return total + (service?.durationMinutes || 0);
+      }, 0);
+      const durationToUse = totalDuration > 0 ? totalDuration : 60;
+      const startTime = new Date(value);
+      const endTime = new Date(startTime.getTime() + durationToUse * 60000);
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+        scheduledEnd: endTime.toISOString().slice(0, 16),
+      }));
+    }
 
     // Clear error when user starts typing
     if (errors[field]) {
@@ -182,6 +225,26 @@ export function AppointmentForm({ appointment, newAppointmentData, onSubmit, onC
             </option>
           ))}
         </select>
+        {formData.stylistId && (
+          <div className="mt-2 flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+            {(stylists?.find((s) => s.id === formData.stylistId))?.photo ? (
+              <img
+                src={(stylists?.find((s) => s.id === formData.stylistId))?.photo}
+                alt={stylists?.find((s) => s.id === formData.stylistId)?.user.firstName}
+                className="w-10 h-10 rounded-full object-cover border-2 border-purple-200"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                <span className="text-sm font-semibold text-purple-600">
+                  {stylists?.find((s) => s.id === formData.stylistId)?.user.firstName?.charAt(0)}
+                </span>
+              </div>
+            )}
+            <span className="text-sm text-gray-700">
+              {stylists?.find((s) => s.id === formData.stylistId)?.user.firstName} {stylists?.find((s) => s.id === formData.stylistId)?.user.lastName}
+            </span>
+          </div>
+        )}
         {errors.stylistId && <p className="mt-1 text-sm text-red-600">{errors.stylistId}</p>}
       </div>
 

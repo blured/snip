@@ -15,7 +15,7 @@ export function StylistModal({ isOpen, onClose, stylist }: StylistModalProps) {
 
   const isEdit = !!stylist;
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: Record<string, unknown>) => {
     try {
       if (isEdit && stylist) {
         await updateStylist.mutateAsync({ id: stylist.id, data });

@@ -7,7 +7,7 @@ import type { Stylist } from '@/types';
 
 interface StylistFormProps {
   stylist?: Stylist;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: Record<string, unknown>) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -68,7 +68,7 @@ export function StylistForm({ stylist, onSubmit, onCancel, isLoading }: StylistF
       return;
     }
 
-    const submitData: any = {
+    const submitData: Record<string, unknown> = {
       user: formData.user,
       jobTitleId: formData.jobTitleId || undefined,
       specialties: formData.specialties || undefined,

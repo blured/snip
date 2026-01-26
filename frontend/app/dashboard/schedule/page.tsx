@@ -72,17 +72,13 @@ export default function SchedulePage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-4 flex justify-end">
-        <CalendarSettingsButton onClick={() => setShowSettings(true)} />
-      </div>
-
       {/* Calendar */}
       {isLoading ? (
-        <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white p-12">
+        <div className="flex items-center justify-center rounded-lg border border-gray-900 bg-white p-12">
           <div className="text-gray-500">Loading calendar...</div>
         </div>
       ) : error ? (
-        <div className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-12">
+        <div className="flex items-center justify-center rounded-lg border border-gray-900 bg-red-50 p-12">
           <div className="text-red-500">Failed to load appointments</div>
         </div>
       ) : (
@@ -95,6 +91,7 @@ export default function SchedulePage() {
           onEventDrop={handleEventDrop}
           onStylistFilterChange={setStylistFilter}
           onAppointmentCreate={handleAppointmentCreate}
+          onSettingsClick={() => setShowSettings(true)}
         />
       )}
 
