@@ -156,6 +156,56 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
 
   const stylistPhoto = getStylistPhoto(appointment.stylistId);
 
+  // Generate Google Calendar URL
+  const generateGoogleCalendarUrl = () => {
+    const title = encodeURIComponent(`Appointment with ${appointment.client.user.firstName} ${appointment.client.user.lastName}`);
+    const details = encodeURIComponent(
+      `Stylist: ${getStylistName(appointment.stylistId)}\n` +
+      `Services: ${appointment.services?.map((s: any) => s.service.name).join(', ') || 'N/A'}\n` +
+      (appointment.notes ? `Notes: ${appointment.notes}` : '')
+    );
+    const location = encodeURIComponent('Salon');
+
+    const dates = `${startDate.toISOString().replace(/-|:|\.\d+/g, '')}/${endDate.toISOString().replace(/-|:|\.\d+/g, '')}`;
+
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}&sf=true&output=xml`;
+  };
+
+  // Download .ics file
+  const downloadIcs = () => {
+    const formatDate = (date: Date) => {
+      return date.toISOString().replace(/-|:|\.\d+/g, '') + 'Z';
+    };
+
+    const stylistName = getStylistName(appointment.stylistId);
+    const services = appointment.services?.map((s: any) => s.service.name).join(', ') || 'Appointment';
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Salon Manager//Appointment//EN',
+      'BEGIN:VEVENT',
+      `UID:${appointment.id}@salon.app`,
+      `DTSTAMP:${formatDate(new Date())}`,
+      `DTSTART:${formatDate(startDate)}`,
+      `DTEND:${formatDate(endDate)}`,
+      `SUMMARY:Appointment with ${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
+      `DESCRIPTION:Stylist: ${stylistName}\\nServices: ${services}\\n${appointment.notes ? `Notes: ${appointment.notes}` : ''}`,
+      'LOCATION:Salon',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `appointment-${appointment.id}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="fixed inset-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 p-0 sm:p-4 bg-white sm:bg-transparent">
       <div className="bg-white sm:rounded-lg shadow-2xl w-full h-full sm:max-w-md sm:max-h-[85vh] overflow-y-auto flex flex-col">
@@ -297,18 +347,41 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
 
         {/* Actions */}
         <div className="p-4 sm:p-6 border-t border-gray-400 bg-gray-50 flex flex-col sm:flex-row gap-3 justify-stretch sm:justify-between flex-shrink-0">
-          <button
-            onClick={() => {
-              onClose();
-              onEventClick?.(appointment);
-            }}
-            className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px]"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Edit Appointment
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
+            <button
+              onClick={() => {
+                onClose();
+                onEventClick?.(appointment);
+              }}
+              className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit Appointment
+            </button>
+            <a
+              href={generateGoogleCalendarUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px]"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Add to Calendar
+            </a>
+            <button
+              onClick={downloadIcs}
+              className="px-4 py-3 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors text-gray-900 font-medium flex items-center justify-center gap-2 min-h-[44px]"
+              title="Download .ics file"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4-4m4 4V4" />
+              </svg>
+              <span className="hidden sm:inline">Download</span>
+            </button>
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-3 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors text-gray-900 font-medium min-h-[44px]"
