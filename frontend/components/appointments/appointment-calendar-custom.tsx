@@ -739,13 +739,13 @@ export function AppointmentCalendarCustom({
 
       return (
         <div className="flex-1 overflow-x-auto">
-          <div className={`grid gap-0 border border-gray-400 min-w-[1000px] ${gridClass}`}>
+          <div className={`grid gap-0 border border-gray-400 min-w-[600px] sm:min-w-[1000px] ${gridClass}`}>
             {/* Header row */}
-            <div className="border-r border-gray-400 p-2 bg-gray-50"></div>
+            <div className="border-r border-gray-400 p-1 sm:p-2 bg-gray-50"></div>
             {workWeekDays.map((day, i) => (
-              <div key={day} className="p-2 bg-gray-50 border-r text-center">
-                <div className="font-semibold text-sm text-gray-900">{day}</div>
-                <div className="text-2xl font-bold text-gray-900">{workWeekDates[i].getDate()}</div>
+              <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r text-center">
+                <div className="font-semibold text-xs sm:text-sm text-gray-900">{day}</div>
+                <div className="text-lg sm:text-2xl font-bold text-gray-900">{workWeekDates[i].getDate()}</div>
               </div>
             ))}
 
@@ -754,8 +754,9 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b p-2 text-sm text-gray-900 h-16">
-                    {hour}:00
+                  <div className="border-r border-b p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start">
+                    <span className="hidden sm:inline">{hour}:00</span>
+                    <span className="sm:hidden text-[10px]">{hour}</span>
                   </div>
                   {workWeekDates.map((date) => {
                     const dayAppointments = getAppointmentsForDate(date).filter((apt) => {
@@ -766,7 +767,7 @@ export function AppointmentCalendarCustom({
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="border-r border-b h-16 relative hover:bg-blue-50 cursor-pointer"
+                        className="border-r border-b h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
                         onClick={() => handleTimeSlotClick(date, hour)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, date, hour)}
@@ -775,7 +776,7 @@ export function AppointmentCalendarCustom({
                           const startDate = new Date(apt.scheduledStart);
                           const endDate = new Date(apt.scheduledEnd);
                           const duration = (endDate.getTime() - startDate.getTime()) / 60000;
-                          const height = Math.max(duration, 30);
+                          const height = Math.max(duration * 0.6, 20);
                           const stylistIndex = stylists.findIndex((s) => s.id === apt.stylistId);
 
                           return (
@@ -787,18 +788,18 @@ export function AppointmentCalendarCustom({
                                 e.stopPropagation();
                                 setSelectedAppointment(apt);
                               }}
-                              className="absolute left-1 right-1 rounded p-1 text-xs text-white overflow-hidden cursor-pointer hover:opacity-90"
+                              className="absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded p-0.5 sm:p-1 text-[10px] sm:text-xs text-white overflow-hidden cursor-pointer hover:opacity-90"
                               style={{
                                 backgroundColor: getStylistColor(apt.stylistId, stylistIndex),
                                 top: 0,
                                 height: `${height}px`,
                               }}
                             >
-                              <div className="font-semibold truncate">
+                              <div className="font-semibold truncate hidden sm:block">
                                 {apt.client.user.firstName} {apt.client.user.lastName}
                               </div>
-                              <div className="truncate opacity-90">
-                                {getStylistName(apt.stylistId)}
+                              <div className="truncate opacity-90 text-[8px] sm:text-xs">
+                                {apt.client.user.firstName.split(' ')[0]}
                               </div>
                             </div>
                           );
@@ -821,13 +822,13 @@ export function AppointmentCalendarCustom({
 
       return (
         <div className="flex-1 overflow-x-auto">
-          <div className="grid grid-cols-8 gap-0 border min-w-[1000px]">
+          <div className="grid grid-cols-8 gap-0 border min-w-[600px] sm:min-w-[1000px]">
             {/* Header row */}
-            <div className="border-r border-gray-400 p-2 bg-gray-50"></div>
+            <div className="border-r border-gray-400 p-1 sm:p-2 bg-gray-50"></div>
             {weekDates.map((date, i) => (
-              <div key={date.toISOString()} className="p-2 bg-gray-50 border-r text-center">
-                <div className="font-semibold text-sm text-gray-900">{dayNames[i]}</div>
-                <div className="text-2xl font-bold text-gray-900">{date.getDate()}</div>
+              <div key={date.toISOString()} className="p-1 sm:p-2 bg-gray-50 border-r text-center">
+                <div className="font-semibold text-xs sm:text-sm text-gray-900">{dayNames[i]}</div>
+                <div className="text-lg sm:text-2xl font-bold text-gray-900">{date.getDate()}</div>
               </div>
             ))}
 
@@ -836,8 +837,9 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b p-2 text-sm text-gray-900 h-16">
-                    {hour}:00
+                  <div className="border-r border-b p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start">
+                    <span className="hidden sm:inline">{hour}:00</span>
+                    <span className="sm:hidden text-[10px]">{hour}</span>
                   </div>
                   {weekDates.map((date) => {
                     const dayAppointments = getAppointmentsForDate(date).filter((apt) => {
@@ -848,7 +850,7 @@ export function AppointmentCalendarCustom({
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="border-r border-b h-16 relative hover:bg-blue-50 cursor-pointer"
+                        className="border-r border-b h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
                         onClick={() => handleTimeSlotClick(date, hour)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, date, hour)}
@@ -857,7 +859,7 @@ export function AppointmentCalendarCustom({
                           const startDate = new Date(apt.scheduledStart);
                           const endDate = new Date(apt.scheduledEnd);
                           const duration = (endDate.getTime() - startDate.getTime()) / 60000;
-                          const height = Math.max(duration, 30);
+                          const height = Math.max(duration * 0.6, 20);
                           const stylistIndex = stylists.findIndex((s) => s.id === apt.stylistId);
 
                           return (
@@ -869,18 +871,18 @@ export function AppointmentCalendarCustom({
                                 e.stopPropagation();
                                 setSelectedAppointment(apt);
                               }}
-                              className="absolute left-1 right-1 rounded p-1 text-xs text-white overflow-hidden cursor-pointer hover:opacity-90"
+                              className="absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded p-0.5 sm:p-1 text-[10px] sm:text-xs text-white overflow-hidden cursor-pointer hover:opacity-90"
                               style={{
                                 backgroundColor: getStylistColor(apt.stylistId, stylistIndex),
                                 top: 0,
                                 height: `${height}px`,
                               }}
                             >
-                              <div className="font-semibold truncate">
+                              <div className="font-semibold truncate hidden sm:block">
                                 {apt.client.user.firstName} {apt.client.user.lastName}
                               </div>
-                              <div className="truncate opacity-90">
-                                {getStylistName(apt.stylistId)}
+                              <div className="truncate opacity-90 text-[8px] sm:text-xs">
+                                {apt.client.user.firstName.split(' ')[0]}
                               </div>
                             </div>
                           );
@@ -901,7 +903,7 @@ export function AppointmentCalendarCustom({
       const dayAppointments = getAppointmentsForDate(currentDate);
 
       return (
-        <div className="flex-1 max-w-2xl mx-auto">
+        <div className="flex-1 max-w-full sm:max-w-2xl mx-auto">
           {Array.from({ length: endHour - startHour }, (_, i) => {
             const hour = startHour + i;
             const hourAppointments = dayAppointments.filter((apt) => {
@@ -916,15 +918,16 @@ export function AppointmentCalendarCustom({
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, currentDate, hour)}
               >
-                <div className="w-20 p-2 text-sm text-gray-900 border-r">
-                  {hour}:00
+                <div className="w-12 sm:w-20 p-1 sm:p-2 text-xs sm:text-sm text-gray-900 border-r flex items-center justify-center">
+                  <span className="hidden sm:inline">{hour}:00</span>
+                  <span className="sm:hidden text-[10px]">{hour}</span>
                 </div>
-                <div className="flex-1 p-2 min-h-[60px] relative">
+                <div className="flex-1 p-1 sm:p-2 min-h-[40px] sm:min-h-[60px] relative">
                   {hourAppointments.map((apt) => {
                     const startDate = new Date(apt.scheduledStart);
                     const endDate = new Date(apt.scheduledEnd);
                     const duration = (endDate.getTime() - startDate.getTime()) / 60000;
-                    const height = Math.max(duration, 40);
+                    const height = Math.max(duration * 0.7, 30);
                     const stylistIndex = stylists.findIndex((s) => s.id === apt.stylistId);
 
                     return (
@@ -936,20 +939,20 @@ export function AppointmentCalendarCustom({
                           e.stopPropagation();
                           setSelectedAppointment(apt);
                         }}
-                        className="absolute left-2 right-2 rounded p-2 text-white cursor-pointer hover:opacity-90"
+                        className="absolute left-1 sm:left-2 right-1 sm:right-2 rounded p-1 sm:p-2 text-white cursor-pointer hover:opacity-90"
                         style={{
                           backgroundColor: getStylistColor(apt.stylistId, stylistIndex),
                           height: `${height}px`,
                         }}
                       >
-                        <div className="font-semibold">
+                        <div className="font-semibold text-xs sm:text-sm">
                           {apt.client.user.firstName} {apt.client.user.lastName}
                         </div>
-                        <div className="text-sm opacity-90">
+                        <div className="text-[10px] sm:text-sm opacity-90 hidden sm:block">
                           {startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} -{' '}
                           {endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div className="text-sm opacity-90">
+                        <div className="text-[10px] sm:text-sm opacity-90">
                           {getStylistName(apt.stylistId)}
                         </div>
                       </div>
@@ -984,7 +987,7 @@ export function AppointmentCalendarCustom({
         <div className="grid grid-cols-7 gap-0 border">
           {/* Day headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-2 bg-gray-50 border-r text-center font-semibold text-gray-900">
+            <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r text-center font-semibold text-gray-900 text-xs">
               {day}
             </div>
           ))}
@@ -998,33 +1001,35 @@ export function AppointmentCalendarCustom({
             return (
               <div
                 key={date.toISOString()}
-                className={`border-r border-b p-2 min-h-[100px] ${
+                className={`border-r border-b p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
                   !isCurrentMonth ? 'bg-gray-50' : ''
                 } ${isToday ? 'bg-blue-50' : ''}`}
               >
-                <div className={`text-sm font-semibold mb-1 ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-900'}`}>
+                <div className={`text-xs sm:text-sm font-semibold mb-0.5 sm:mb-1 ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-900'}`}>
                   {date.getDate()}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-0.5 sm:space-y-1">
                   {dayAppointments.slice(0, 3).map((apt) => {
                     const stylistIndex = stylists.findIndex((s) => s.id === apt.stylistId);
                     return (
                       <div
                         key={apt.id}
                         onClick={() => setSelectedAppointment(apt)}
-                        className="text-xs p-1 rounded text-white truncate cursor-pointer hover:opacity-90"
+                        className="text-[8px] sm:text-xs p-0.5 sm:p-1 rounded text-white truncate cursor-pointer hover:opacity-90"
                         style={{ backgroundColor: getStylistColor(apt.stylistId, stylistIndex) }}
                       >
-                        {new Date(apt.scheduledStart).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}{' '}
+                        <span className="hidden sm:inline">
+                          {new Date(apt.scheduledStart).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}{' '}
+                        </span>
                         {apt.client.user.firstName}
                       </div>
                     );
                   })}
                   {dayAppointments.length > 3 && (
-                    <div className="text-xs text-gray-900">
+                    <div className="text-[8px] sm:text-xs text-gray-900">
                       +{dayAppointments.length - 3} more
                     </div>
                   )}
