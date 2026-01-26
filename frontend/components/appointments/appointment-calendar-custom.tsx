@@ -741,7 +741,7 @@ export function AppointmentCalendarCustom({
         <div className="flex-1 overflow-x-auto">
           <div className={`grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px] ${gridClass}`}>
             {/* Header row */}
-            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50"></div>
+            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50 w-[45px] sm:w-[50px] flex-shrink-0"></div>
             {workWeekDays.map((day, i) => (
               <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center">
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{day}</div>
@@ -754,9 +754,8 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-8 sm:w-12 flex-shrink-0">
-                    <span className="hidden sm:inline">{hour}:00</span>
-                    <span className="sm:hidden text-[10px]">{hour}</span>
+                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-[45px] sm:w-[50px] flex-shrink-0">
+                    {hour}:00
                   </div>
                   {workWeekDates.map((date) => {
                     const dayAppointments = getAppointmentsForDate(date).filter((apt) => {
@@ -824,7 +823,7 @@ export function AppointmentCalendarCustom({
         <div className="flex-1 overflow-x-auto">
           <div className="grid grid-cols-8 gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px]">
             {/* Header row */}
-            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50"></div>
+            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50 w-[45px] sm:w-[50px] flex-shrink-0"></div>
             {weekDates.map((date, i) => (
               <div key={date.toISOString()} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center">
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{dayNames[i]}</div>
@@ -837,9 +836,8 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-8 sm:w-12 flex-shrink-0">
-                    <span className="hidden sm:inline">{hour}:00</span>
-                    <span className="sm:hidden text-[10px]">{hour}</span>
+                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-[45px] sm:w-[50px] flex-shrink-0">
+                    {hour}:00
                   </div>
                   {weekDates.map((date) => {
                     const dayAppointments = getAppointmentsForDate(date).filter((apt) => {
@@ -918,9 +916,8 @@ export function AppointmentCalendarCustom({
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, currentDate, hour)}
               >
-                <div className="w-8 sm:w-12 p-1 sm:p-2 text-xs sm:text-sm text-gray-900 border-r border-gray-800 flex items-center justify-center flex-shrink-0">
-                  <span className="hidden sm:inline">{hour}:00</span>
-                  <span className="sm:hidden text-[10px]">{hour}</span>
+                <div className="w-[45px] sm:w-[50px] p-1 sm:p-2 text-[10px] sm:text-xs text-gray-900 border-r border-gray-800 flex items-center justify-center flex-shrink-0">
+                  {hour}:00
                 </div>
                 <div className="flex-1 p-1 sm:p-2 min-h-[40px] sm:min-h-[60px] relative">
                   {hourAppointments.map((apt) => {
