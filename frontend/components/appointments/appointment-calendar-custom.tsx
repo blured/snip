@@ -739,11 +739,11 @@ export function AppointmentCalendarCustom({
 
       return (
         <div className="flex-1 overflow-x-auto">
-          <div className={`grid gap-0 border border-gray-400 min-w-[600px] sm:min-w-[1000px] ${gridClass}`}>
+          <div className={`grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px] ${gridClass}`}>
             {/* Header row */}
-            <div className="border-r border-gray-400 p-1 sm:p-2 bg-gray-50"></div>
+            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50"></div>
             {workWeekDays.map((day, i) => (
-              <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r text-center">
+              <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center">
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{day}</div>
                 <div className="text-lg sm:text-2xl font-bold text-gray-900">{workWeekDates[i].getDate()}</div>
               </div>
@@ -754,7 +754,7 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start">
+                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-8 sm:w-12 flex-shrink-0">
                     <span className="hidden sm:inline">{hour}:00</span>
                     <span className="sm:hidden text-[10px]">{hour}</span>
                   </div>
@@ -767,7 +767,7 @@ export function AppointmentCalendarCustom({
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="border-r border-b h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
+                        className="border-r border-b border-gray-800 h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
                         onClick={() => handleTimeSlotClick(date, hour)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, date, hour)}
@@ -822,11 +822,11 @@ export function AppointmentCalendarCustom({
 
       return (
         <div className="flex-1 overflow-x-auto">
-          <div className="grid grid-cols-8 gap-0 border min-w-[600px] sm:min-w-[1000px]">
+          <div className="grid grid-cols-8 gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px]">
             {/* Header row */}
-            <div className="border-r border-gray-400 p-1 sm:p-2 bg-gray-50"></div>
+            <div className="border-r border-gray-800 p-1 sm:p-2 bg-gray-50"></div>
             {weekDates.map((date, i) => (
-              <div key={date.toISOString()} className="p-1 sm:p-2 bg-gray-50 border-r text-center">
+              <div key={date.toISOString()} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center">
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{dayNames[i]}</div>
                 <div className="text-lg sm:text-2xl font-bold text-gray-900">{date.getDate()}</div>
               </div>
@@ -837,7 +837,7 @@ export function AppointmentCalendarCustom({
               const hour = startHour + i;
               return (
                 <React.Fragment key={hour}>
-                  <div className="border-r border-b p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start">
+                  <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-xs sm:text-sm text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start w-8 sm:w-12 flex-shrink-0">
                     <span className="hidden sm:inline">{hour}:00</span>
                     <span className="sm:hidden text-[10px]">{hour}</span>
                   </div>
@@ -850,7 +850,7 @@ export function AppointmentCalendarCustom({
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="border-r border-b h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
+                        className="border-r border-b border-gray-800 h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
                         onClick={() => handleTimeSlotClick(date, hour)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, date, hour)}
@@ -913,12 +913,12 @@ export function AppointmentCalendarCustom({
             return (
               <div
                 key={hour}
-                className="flex border-b hover:bg-blue-50 cursor-pointer"
+                className="flex border-b border-gray-800 hover:bg-blue-50 cursor-pointer"
                 onClick={() => handleTimeSlotClick(currentDate, hour)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, currentDate, hour)}
               >
-                <div className="w-12 sm:w-20 p-1 sm:p-2 text-xs sm:text-sm text-gray-900 border-r flex items-center justify-center">
+                <div className="w-8 sm:w-12 p-1 sm:p-2 text-xs sm:text-sm text-gray-900 border-r border-gray-800 flex items-center justify-center flex-shrink-0">
                   <span className="hidden sm:inline">{hour}:00</span>
                   <span className="sm:hidden text-[10px]">{hour}</span>
                 </div>
@@ -984,10 +984,10 @@ export function AppointmentCalendarCustom({
 
     return (
       <div className="flex-1">
-        <div className="grid grid-cols-7 gap-0 border">
+        <div className="grid grid-cols-7 gap-0 border border-gray-800">
           {/* Day headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r text-center font-semibold text-gray-900 text-xs">
+            <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center font-semibold text-gray-900 text-xs">
               {day}
             </div>
           ))}
@@ -1001,7 +1001,7 @@ export function AppointmentCalendarCustom({
             return (
               <div
                 key={date.toISOString()}
-                className={`border-r border-b p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
+                className={`border-r border-b border-gray-800 p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
                   !isCurrentMonth ? 'bg-gray-50' : ''
                 } ${isToday ? 'bg-blue-50' : ''}`}
               >
