@@ -30,11 +30,17 @@ const passwordValidation = [
   body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
 ];
 
+const adminPasswordValidation = [
+  body('userId').notEmpty().withMessage('User ID is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+];
+
 // Routes
 router.post('/register', validate(registerValidation), authController.register);
 router.post('/login', validate(loginValidation), authController.login);
 router.get('/me', authenticate, authController.getCurrentUser);
 router.put('/me', authenticate, validate(profileValidation), authController.updateProfile);
 router.post('/change-password', authenticate, validate(passwordValidation), authController.changePassword);
+router.post('/admin/change-password', authenticate, validate(adminPasswordValidation), authController.adminChangePassword);
 
 export default router;

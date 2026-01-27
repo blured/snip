@@ -1,16 +1,17 @@
 import { Client } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Mail, Phone, User, Calendar } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, User, Calendar, Key } from 'lucide-react';
 
 interface ClientCardProps {
   client: Client;
   onEdit: (client: Client) => void;
   onDelete: (client: Client) => void;
+  onChangePassword?: (client: Client) => void;
   onClick: (client: Client) => void;
 }
 
-export function ClientCard({ client, onEdit, onDelete, onClick }: ClientCardProps) {
+export function ClientCard({ client, onEdit, onDelete, onChangePassword, onClick }: ClientCardProps) {
   const clientName = `${client.user.firstName} ${client.user.lastName}`;
   const initials = `${client.user.firstName[0]}${client.user.lastName[0]}`;
 
@@ -55,6 +56,16 @@ export function ClientCard({ client, onEdit, onDelete, onClick }: ClientCardProp
             >
               <Pencil className="h-4 w-4" />
             </Button>
+            {onChangePassword && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onChangePassword(client)}
+                className="h-8 w-8 rounded-lg p-0 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+              >
+                <Key className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

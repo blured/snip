@@ -33,4 +33,12 @@ export const authApi = {
     });
     return response.data;
   },
+
+  adminChangePassword: async (userId: string, newPassword: string): Promise<{ message: string; user: any }> => {
+    const response = await apiClient.post('/api/auth/admin/change-password', {
+      userId,
+      newPassword,
+    });
+    return response.data;
+  },
 };

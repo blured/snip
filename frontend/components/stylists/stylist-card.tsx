@@ -1,16 +1,17 @@
 import { Stylist } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, Mail, Phone, Calendar, Star } from 'lucide-react';
+import { Pencil, Trash2, Mail, Phone, Calendar, Star, Key } from 'lucide-react';
 
 interface StylistCardProps {
   stylist: Stylist;
   onEdit: (stylist: Stylist) => void;
   onDelete: (stylist: Stylist) => void;
+  onChangePassword?: (stylist: Stylist) => void;
   onClick: (stylist: Stylist) => void;
 }
 
-export function StylistCard({ stylist, onEdit, onDelete, onClick }: StylistCardProps) {
+export function StylistCard({ stylist, onEdit, onDelete, onChangePassword, onClick }: StylistCardProps) {
   const stylistName = `${stylist.user.firstName} ${stylist.user.lastName}`;
   const initials = `${stylist.user.firstName[0]}${stylist.user.lastName[0]}`;
 
@@ -75,6 +76,16 @@ export function StylistCard({ stylist, onEdit, onDelete, onClick }: StylistCardP
             >
               <Pencil className="h-4 w-4" />
             </Button>
+            {onChangePassword && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onChangePassword(stylist)}
+                className="h-8 w-8 rounded-lg p-0 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+              >
+                <Key className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

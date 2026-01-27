@@ -11,6 +11,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { ClientModal } from '@/components/clients/client-modal';
 import { ClientCard } from '@/components/clients/client-card';
+import { ChangePasswordModal } from '@/components/auth/change-password-modal';
 import { useClients, useDeleteClient } from '@/hooks/use-clients';
 import { Plus, Pencil, Trash2, Search, CheckSquare, Square, ChevronUp, ChevronDown, ChevronsUpDown, Filter, XCircle, List, LayoutGrid } from 'lucide-react';
 import type { Client } from '@/types';
@@ -34,6 +35,8 @@ export default function ClientsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('card');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [clientForPassword, setClientForPassword] = useState<Client | undefined>();
 
   // Filter state
   const [filters, setFilters] = useState<ClientFilters>({
@@ -207,6 +210,11 @@ export default function ClientsPage() {
     router.push(`/dashboard/clients/${client.id}`);
   };
 
+  const handleChangePassword = (client: Client) => {
+    setClientForPassword(client);
+    setShowPasswordModal(true);
+  };
+
   return (
     <DashboardLayout>
       <div className="mb-8 flex items-center justify-between">
@@ -366,6 +374,7 @@ export default function ClientsPage() {
                   client={client}
                   onEdit={(c) => { setSelectedClient(c); setShowModal(true); }}
                   onDelete={handleDelete}
+                  onChangePassword={user?.role === 'ADMIN' ? handleChangePassword : undefined}
                   onClick={handleCardClick}
                 />
               ))}
@@ -510,6 +519,16 @@ export default function ClientsPage() {
         onClose={() => { setShowModal(false); setSelectedClient(undefined); }}
         client={selectedClient}
       />
+
+      {/* Change Password Modal */}
+      {clientForPassword && (
+        <ChangePasswordModal
+          isOpen={showPasswordModal}
+          onClose={() => { setShowPasswordModal(false); setClientForPassword(undefined); }}
+          userName={`${clientForPassword.user.firstName} ${clientForPassword.user.lastName}`}
+          userId={clientForPassword.user.id}
+        />
+      )}
     </DashboardLayout>
   );
 }

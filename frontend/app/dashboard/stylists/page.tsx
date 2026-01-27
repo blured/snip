@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { StylistModal } from '@/components/stylists/stylist-modal';
 import { StylistCard } from '@/components/stylists/stylist-card';
+import { ChangePasswordModal } from '@/components/auth/change-password-modal';
 import { useStylists, useDeleteStylist } from '@/hooks/use-stylists';
 import { Plus, Pencil, Trash2, Search, CheckSquare, Square, ChevronUp, ChevronDown, ChevronsUpDown, Filter, XCircle, List, LayoutGrid } from 'lucide-react';
 import type { Stylist } from '@/types';
@@ -27,6 +29,7 @@ interface StylistFilters {
 
 export default function StylistsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { data: stylists, isLoading, error } = useStylists();
   const deleteStylist = useDeleteStylist();
   const [showModal, setShowModal] = useState(false);
@@ -34,6 +37,8 @@ export default function StylistsPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('card');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [stylistForPassword, setStylistForPassword] = useState<Stylist | undefined>();
 
   // Filter state
   const [filters, setFilters] = useState<StylistFilters>({
@@ -210,6 +215,11 @@ export default function StylistsPage() {
 
   const handleCardClick = (stylist: Stylist) => {
     router.push(`/dashboard/stylists/${stylist.id}`);
+  };
+
+  const handleChangePassword = (stylist: Stylist) => {
+    setStylistForPassword(stylist);
+    setShowPasswordModal(true);
   };
 
   return (
@@ -399,6 +409,7 @@ export default function StylistsPage() {
                   stylist={stylist}
                   onEdit={(s) => { setSelectedStylist(s); setShowModal(true); }}
                   onDelete={handleDelete}
+                  onChangePassword={user?.role === 'ADMIN' ? handleChangePassword : undefined}
                   onClick={handleCardClick}
                 />
               ))}
@@ -567,6 +578,16 @@ export default function StylistsPage() {
         onClose={() => { setShowModal(false); setSelectedStylist(undefined); }}
         stylist={selectedStylist}
       />
+
+      {/* Change Password Modal */}
+      {stylistForPassword && (
+        <ChangePasswordModal
+          isOpen={showPasswordModal}
+          onClose={() => { setShowPasswordModal(false); setStylistForPassword(undefined); }}
+          userName={`${stylistForPassword.user.firstName} ${stylistForPassword.user.lastName}`}
+          userId={stylistForPassword.user.id}
+        />
+      )}
     </DashboardLayout>
   );
 }

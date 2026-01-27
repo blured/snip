@@ -296,3 +296,53 @@ export const changePassword = async (req: AuthRequest, res: Response): Promise<v
     res.status(500).json({ error: 'Internal Server Error', message: 'Failed to change password' });
   }
 };
+
+export const adminChangePassword = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Unauthorized', message: 'User not authenticated' });
+      return;
+    }
+
+    // Check if user is admin
+    if (req.user.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Forbidden', message: 'Only admins can change other users\' passwords' });
+      return;
+    }
+
+    const { userId, newPassword } = req.body;
+
+    if (!userId || !newPassword) {
+      res.status(400).json({ error: 'Bad Request', message: 'User ID and new password are required' });
+      return;
+    }
+
+    // Check if target user exists
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, firstName: true, lastName: true },
+    });
+
+    if (!targetUser) {
+      res.status(404).json({ error: 'Not Found', message: 'User not found' });
+      return;
+    }
+
+    // Hash new password
+    const newPasswordHash = await hashPassword(newPassword);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    res.json({
+      message: `Password changed successfully for ${targetUser.firstName} ${targetUser.lastName}`,
+      user: targetUser
+    });
+  } catch (error) {
+    console.error('Admin change password error:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to change password' });
+  }
+};
