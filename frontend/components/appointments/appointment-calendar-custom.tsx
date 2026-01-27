@@ -813,11 +813,11 @@ export function AppointmentCalendarCustom({
       return (
         <div className="flex-1 overflow-auto">
           <div
-            className="grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px]"
+            className="grid gap-0 border border-gray-800 w-full"
             style={{
               gridTemplateColumns: calendarSettings?.includeSaturday
-                ? '50px repeat(6, minmax(100px, 1fr))'
-                : '50px repeat(5, minmax(100px, 1fr))'
+                ? '50px repeat(6, minmax(60px, 1fr))'
+                : '50px repeat(5, minmax(60px, 1fr))'
             }}
           >
             {/* Header row */}
@@ -902,8 +902,8 @@ export function AppointmentCalendarCustom({
       return (
         <div className="flex-1 overflow-auto">
           <div
-            className="grid gap-0 border border-gray-800 min-w-[600px] sm:min-w-[1000px]"
-            style={{ gridTemplateColumns: '50px repeat(7, minmax(100px, 1fr))' }}
+            className="grid gap-0 border border-gray-800 w-full"
+            style={{ gridTemplateColumns: '50px repeat(7, minmax(60px, 1fr))' }}
           >
             {/* Header row */}
             <div className="border-r border-b border-gray-800 p-1 sm:p-2 bg-gray-50 flex-shrink-0 sticky top-0 left-0 z-20"></div>
