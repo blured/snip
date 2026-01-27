@@ -276,10 +276,10 @@ async function main() {
 
   console.log(`Created ${clients.length} clients`);
 
-  // Create appointments for the next 30 days
-  // Track appointments per stylist per day (max 16 per stylist per day)
-  const MAX_APPOINTMENTS_PER_STYLIST_PER_DAY = 16;
-  const APPOINTMENT_DAYS = 30;
+  // Create appointments for the next 14 days
+  // Track appointments per stylist per day (max 4 per stylist per day)
+  const MAX_APPOINTMENTS_PER_STYLIST_PER_DAY = 4;
+  const APPOINTMENT_DAYS = 14;
 
   // Track: appointmentsPerDay[dayIndex][stylistId] = count
   const appointmentsPerDay: Record<number, Record<string, number>> = {};
@@ -289,9 +289,9 @@ async function main() {
     const dayIndex = day;
     appointmentsPerDay[dayIndex] = {};
 
-    // For each stylist, randomly assign 8-16 appointments
+    // For each stylist, randomly assign 2-4 appointments (realistic schedule)
     for (const stylist of stylists) {
-      const numAppointments = 8 + Math.floor(Math.random() * 9); // 8-16 appointments per stylist
+      const numAppointments = 2 + Math.floor(Math.random() * 3); // 2-4 appointments per stylist
 
       for (let i = 0; i < numAppointments; i++) {
         // Track count for this stylist on this day

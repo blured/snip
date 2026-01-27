@@ -63,7 +63,11 @@
       "Bash(ss:*)",
       "Bash(docker context ls:*)",
       "Bash(ping:*)",
-      "Bash(rsync:*)"
+      "Bash(rsync:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(getent:*)",
+      "Bash(npm run prisma:seed:*)"
     ]
   }
 }
