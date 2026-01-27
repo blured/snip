@@ -184,16 +184,13 @@ All endpoints under `/api/*`:
 ## Important Notes
 
 ### Production Deployment (CRITICAL)
-**ALWAYS deploy and run Docker containers on udock, NEVER on mofo2 or any other machine.**
-- Production database is hosted on udock.localdomain:5432
-- Application must be deployed to udock via SSH: `ssh udock` then work in `/home/laurent/docker/snip`
+**ALWAYS deploy and run Docker containers on mofo2 (current machine).**
+- Application runs on mofo2 at http://localhost:3001 (frontend) and http://localhost:3000 (backend)
+- Database is hosted locally on mofo2:5432
 - Deployment workflow:
   1. Commit and push changes to GitHub from development machine
-  2. SSH into udock: `ssh udock`
-  3. Navigate to project: `cd /home/laurent/docker/snip`
-  4. Pull latest changes: `git pull`
-  5. Rebuild and restart: `docker compose down && docker compose up -d --build`
-- This ensures the application always uses the correct production database
+  2. Rebuild and restart locally: `docker compose down && docker compose up -d --build`
+- If database needs to be synced from udock: Use `pg_dump` on udock and restore to mofo2
 
 ### Type Safety
 - Prisma generates TypeScript types from database schema
