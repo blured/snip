@@ -183,6 +183,18 @@ All endpoints under `/api/*`:
 
 ## Important Notes
 
+### Production Deployment (CRITICAL)
+**ALWAYS deploy and run Docker containers on udock, NEVER on mofo2 or any other machine.**
+- Production database is hosted on udock.localdomain:5432
+- Application must be deployed to udock via SSH: `ssh udock` then work in `/home/laurent/docker/snip`
+- Deployment workflow:
+  1. Commit and push changes to GitHub from development machine
+  2. SSH into udock: `ssh udock`
+  3. Navigate to project: `cd /home/laurent/docker/snip`
+  4. Pull latest changes: `git pull`
+  5. Rebuild and restart: `docker compose down && docker compose up -d --build`
+- This ensures the application always uses the correct production database
+
 ### Type Safety
 - Prisma generates TypeScript types from database schema
 - Frontend uses `@/*` path alias (maps to `frontend/`)

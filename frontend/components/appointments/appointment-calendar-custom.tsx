@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import type { Appointment, AppointmentStatus } from '@/types';
 import type { AppointmentCalendarProps } from './appointment-calendar-types';
 
@@ -127,9 +128,43 @@ interface AppointmentCardProps {
   onClose: () => void;
   stylists?: Array<{ id: string; user: { firstName: string; lastName: string }; photo?: string }>;
   onEventClick?: (appointment: Appointment) => void;
+  isEditing?: boolean;
+  setIsEditing?: (editing: boolean) => void;
+  onUpdateAppointment?: (id: string, data: any) => Promise<any>;
 }
 
-function AppointmentCard({ appointment, onClose, stylists, onEventClick }: AppointmentCardProps) {
+function AppointmentCard({ appointment, onClose, stylists, onEventClick, isEditing = false, setIsEditing, onUpdateAppointment }: AppointmentCardProps) {
+  const [editedStatus, setEditedStatus] = React.useState<AppointmentStatus>(appointment.status);
+  const [editedNotes, setEditedNotes] = React.useState(appointment.notes || '');
+  const [editedStylistId, setEditedStylistId] = React.useState(appointment.stylistId);
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    setEditedStatus(appointment.status);
+    setEditedNotes(appointment.notes || '');
+    setEditedStylistId(appointment.stylistId);
+  }, [appointment]);
+
+  const handleSave = async () => {
+    if (!onUpdateAppointment || !setIsEditing) return;
+
+    setIsSaving(true);
+    try {
+      await onUpdateAppointment(appointment.id, {
+        status: editedStatus,
+        notes: editedNotes,
+        stylistId: editedStylistId,
+      });
+      toast.success('Appointment updated successfully');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update appointment:', error);
+      toast.error('Failed to update appointment');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const startDate = new Date(appointment.scheduledStart);
   const endDate = new Date(appointment.scheduledEnd);
 
@@ -171,67 +206,83 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}&sf=true&output=xml`;
   };
 
-  // Download .ics file
-  const downloadIcs = () => {
-    const formatDate = (date: Date) => {
-      return date.toISOString().replace(/-|:|\.\d+/g, '') + 'Z';
-    };
-
-    const stylistName = getStylistName(appointment.stylistId);
-    const services = appointment.services?.map((s: any) => s.service.name).join(', ') || 'Appointment';
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Salon Manager//Appointment//EN',
-      'BEGIN:VEVENT',
-      `UID:${appointment.id}@salon.app`,
-      `DTSTAMP:${formatDate(new Date())}`,
-      `DTSTART:${formatDate(startDate)}`,
-      `DTEND:${formatDate(endDate)}`,
-      `SUMMARY:Appointment with ${appointment.client.user.firstName} ${appointment.client.user.lastName}`,
-      `DESCRIPTION:Stylist: ${stylistName}\\nServices: ${services}\\n${appointment.notes ? `Notes: ${appointment.notes}` : ''}`,
-      'LOCATION:Salon',
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].join('\r\n');
-
-    const blob = new Blob([icsContent], { type: 'text/calendar' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `appointment-${appointment.id}.ics`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <div className="fixed inset-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:transform sm:-translate-x-1/2 sm:-translate-y-1/2 z-50 p-0 sm:p-4 bg-white sm:bg-transparent">
-      <div className="bg-white sm:rounded-lg shadow-2xl w-full h-full sm:max-w-md sm:max-h-[85vh] overflow-y-auto flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-transparent" onClick={onClose}>
+      <div className="bg-white sm:rounded-lg shadow-2xl w-full h-full sm:w-auto sm:h-auto sm:max-w-md sm:max-h-[85vh] overflow-y-auto flex flex-col relative" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="p-4 sm:p-6 border-b border-gray-400 bg-gray-50 flex-shrink-0">
-          <div className="flex items-start justify-between">
+        <div className="p-4 sm:p-6 border-b border-gray-400 bg-gray-50 flex-shrink-0 relative">
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1 text-red-500 hover:text-red-700 transition-colors"
+            title="Close"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div className="flex items-start justify-between pr-8">
             <div className="flex-1">
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 {appointment.client.user.firstName} {appointment.client.user.lastName}
               </h3>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusStyle.bg} ${statusStyle.text}`}>
-                {appointment.status.replace('_', ' ')}
-              </span>
+              {isEditing ? (
+                <select
+                  value={editedStatus}
+                  onChange={(e) => setEditedStatus(e.target.value as AppointmentStatus)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[editedStatus]?.bg || 'bg-gray-100'} ${statusColors[editedStatus]?.text || 'text-gray-800'} border border-gray-400`}
+                >
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="CONFIRMED">Confirmed</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                  <option value="NO_SHOW">No Show</option>
+                </select>
+              ) : (
+                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                  {appointment.status.replace('_', ' ')}
+                </span>
+              )}
             </div>
-            <button
-              onClick={() => {
-                onClose();
-                onEventClick?.(appointment);
-              }}
-              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
-              title="Edit appointment"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732a2.5 2.5 0 013.536 3.536z" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <>
+                  <a
+                    href={generateGoogleCalendarUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-green-500 hover:text-green-700"
+                    title="Add to Calendar"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </a>
+                  <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="p-2 text-blue-500 hover:text-blue-700 disabled:opacity-50"
+                    title="Save"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditing?.(true)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                  title="Edit appointment"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732a2.5 2.5 0 013.536 3.536z" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -269,23 +320,42 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
               </svg>
             </div>
             <div className="flex items-center gap-3 flex-1">
-              {stylistPhoto ? (
-                <img
-                  src={stylistPhoto}
-                  alt={getStylistName(appointment.stylistId)}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <span className="text-lg font-semibold text-purple-600">
-                    {getStylistName(appointment.stylistId).charAt(0)}
-                  </span>
+              {isEditing ? (
+                <div className="flex-1">
+                  <p className="text-sm text-gray-600">Stylist</p>
+                  <select
+                    value={editedStylistId}
+                    onChange={(e) => setEditedStylistId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-400 rounded-lg text-gray-900"
+                  >
+                    {stylists?.map((stylist) => (
+                      <option key={stylist.id} value={stylist.id}>
+                        {stylist.user.firstName} {stylist.user.lastName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              ) : (
+                <>
+                  {stylistPhoto ? (
+                    <img
+                      src={stylistPhoto}
+                      alt={getStylistName(appointment.stylistId)}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-purple-200"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                      <span className="text-lg font-semibold text-purple-600">
+                        {getStylistName(appointment.stylistId).charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm text-gray-600">Stylist</p>
+                    <p className="font-semibold text-gray-900">{getStylistName(appointment.stylistId)}</p>
+                  </div>
+                </>
               )}
-              <div>
-                <p className="text-sm text-gray-600">Stylist</p>
-                <p className="font-semibold text-gray-900">{getStylistName(appointment.stylistId)}</p>
-              </div>
             </div>
           </div>
 
@@ -314,7 +384,7 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
           )}
 
           {/* Notes */}
-          {appointment.notes && (
+          {isEditing || appointment.notes ? (
             <div className="flex items-start gap-3">
               <div className="text-yellow-500">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,10 +393,20 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
               </div>
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Notes</p>
-                <p className="text-gray-900">{appointment.notes}</p>
+                {isEditing ? (
+                  <textarea
+                    value={editedNotes}
+                    onChange={(e) => setEditedNotes(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-400 rounded-lg text-gray-900"
+                    rows={3}
+                    placeholder="Add notes..."
+                  />
+                ) : (
+                  <p className="text-gray-900">{appointment.notes || 'No notes'}</p>
+                )}
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Client Contact */}
           <div className="flex items-start gap-3">
@@ -348,18 +428,17 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
         {/* Actions */}
         <div className="p-4 sm:p-6 border-t border-gray-400 bg-gray-50 flex flex-col sm:flex-row gap-3 justify-stretch sm:justify-between flex-shrink-0">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
-            <button
-              onClick={() => {
-                onClose();
-                onEventClick?.(appointment);
-              }}
-              className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px]"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit Appointment
-            </button>
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing?.(true)}
+                className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            )}
             <a
               href={generateGoogleCalendarUrl()}
               target="_blank"
@@ -371,23 +450,16 @@ function AppointmentCard({ appointment, onClose, stylists, onEventClick }: Appoi
               </svg>
               Add to Calendar
             </a>
-            <button
-              onClick={downloadIcs}
-              className="px-4 py-3 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors text-gray-900 font-medium flex items-center justify-center gap-2 min-h-[44px]"
-              title="Download .ics file"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4-4m4 4V4" />
-              </svg>
-              <span className="hidden sm:inline">Download</span>
-            </button>
+            {isEditing && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2 min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            )}
           </div>
-          <button
-            onClick={onClose}
-            className="px-4 py-3 border border-gray-400 rounded-lg hover:bg-gray-100 transition-colors text-gray-900 font-medium min-h-[44px]"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>
@@ -604,6 +676,7 @@ export function AppointmentCalendarCustom({
   onStylistFilterChange,
   onAppointmentCreate,
   onSettingsClick,
+  onUpdateAppointment,
 }: AppointmentCalendarProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('week');
@@ -611,6 +684,7 @@ export function AppointmentCalendarCustom({
   const [selectedStylist, setSelectedStylist] = useState<string | undefined>(stylistFilter);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Initialize view and date from settings
@@ -813,7 +887,7 @@ export function AppointmentCalendarCustom({
       return (
         <div className="flex-1 overflow-auto">
           <div
-            className="grid gap-0 border border-gray-800 w-full"
+            className="grid gap-0 border-t border-l border-b border-gray-800 w-full"
             style={{
               gridTemplateColumns: calendarSettings?.includeSaturday
                 ? '50px repeat(6, minmax(60px, 1fr))'
@@ -823,7 +897,7 @@ export function AppointmentCalendarCustom({
             {/* Header row */}
             <div className="border-r border-b border-gray-800 p-1 sm:p-2 bg-gray-50 flex-shrink-0 sticky top-0 left-0 z-20"></div>
             {workWeekDays.map((day, i) => (
-              <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r border-b border-gray-800 text-center sticky top-0 z-10">
+              <div key={day} className={`p-1 sm:p-2 bg-gray-50 border-b border-gray-800 text-center sticky top-0 z-10 ${i < workWeekDays.length - 1 ? 'border-r' : ''}`}>
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{day}</div>
                 <div className="text-lg sm:text-2xl font-bold text-gray-900">{workWeekDates[i].getDate()}</div>
               </div>
@@ -837,7 +911,7 @@ export function AppointmentCalendarCustom({
                   <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start sticky left-0 z-10 bg-white">
                     {hour}:00
                   </div>
-                  {workWeekDates.map((date) => {
+                  {workWeekDates.map((date, dayIndex) => {
                     const dayAppointments = getAppointmentsForDate(date).filter((apt) => {
                       const aptHour = new Date(apt.scheduledStart).getHours();
                       return aptHour === hour;
@@ -846,7 +920,7 @@ export function AppointmentCalendarCustom({
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="border-r border-b border-gray-800 h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
+                        className={`border-b border-gray-800 h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer ${dayIndex < workWeekDates.length - 1 ? 'border-r' : ''}`}
                         onClick={() => handleTimeSlotClick(date, hour)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, date, hour)}
@@ -902,13 +976,13 @@ export function AppointmentCalendarCustom({
       return (
         <div className="flex-1 overflow-auto">
           <div
-            className="grid gap-0 border border-gray-800 w-full"
+            className="grid gap-0 border-t border-l border-b border-gray-800 w-full"
             style={{ gridTemplateColumns: '50px repeat(7, minmax(60px, 1fr))' }}
           >
             {/* Header row */}
             <div className="border-r border-b border-gray-800 p-1 sm:p-2 bg-gray-50 flex-shrink-0 sticky top-0 left-0 z-20"></div>
             {weekDates.map((date, i) => (
-              <div key={date.toISOString()} className="p-1 sm:p-2 bg-gray-50 border-r border-b border-gray-800 text-center sticky top-0 z-10">
+              <div key={date.toISOString()} className={`p-1 sm:p-2 bg-gray-50 border-b border-gray-800 text-center sticky top-0 z-10 ${i < weekDates.length - 1 ? 'border-r' : ''}`}>
                 <div className="font-semibold text-xs sm:text-sm text-gray-900">{dayNames[i]}</div>
                 <div className="text-lg sm:text-2xl font-bold text-gray-900">{date.getDate()}</div>
               </div>
@@ -922,7 +996,7 @@ export function AppointmentCalendarCustom({
                   <div className="border-r border-b border-gray-800 p-0.5 sm:p-2 text-[10px] sm:text-xs text-gray-900 h-10 sm:h-16 flex items-center justify-center sm:justify-start sticky left-0 z-10 bg-white">
                     {hour}:00
                   </div>
-                  {weekDates.map((date) => {
+                  {weekDates.map((date, dayIndex) => {
                     const dayAppointments = getAppointmentsForDate(date).filter((apt) => {
                       const aptHour = new Date(apt.scheduledStart).getHours();
                       return aptHour === hour;
@@ -931,7 +1005,7 @@ export function AppointmentCalendarCustom({
                     return (
                       <div
                         key={`${date.toISOString()}-${hour}`}
-                        className="border-r border-b border-gray-800 h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer"
+                        className={`border-b border-gray-800 h-10 sm:h-16 relative hover:bg-blue-50 cursor-pointer ${dayIndex < weekDates.length - 1 ? 'border-r' : ''}`}
                         onClick={() => handleTimeSlotClick(date, hour)}
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDrop(e, date, hour)}
@@ -1064,26 +1138,27 @@ export function AppointmentCalendarCustom({
 
     return (
       <div className="flex-1">
-        <div className="grid grid-cols-7 gap-0 border border-gray-800">
+        <div className="grid grid-cols-7 gap-0 border-t border-l border-b border-gray-800">
           {/* Day headers */}
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-1 sm:p-2 bg-gray-50 border-r border-gray-800 text-center font-semibold text-gray-900 text-xs">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+            <div key={day} className={`p-1 sm:p-2 bg-gray-50 border-gray-800 text-center font-semibold text-gray-900 text-xs ${i < 6 ? 'border-r' : ''}`}>
               {day}
             </div>
           ))}
 
           {/* Days */}
-          {monthDays.map((date) => {
+          {monthDays.map((date, i) => {
             const dayAppointments = getAppointmentsForDate(date);
             const isCurrentMonth = date.getMonth() === currentDate.getMonth();
             const isToday = date.toDateString() === today.toDateString();
+            const isLastColumn = (i + 1) % 7 === 0;
 
             return (
               <div
                 key={date.toISOString()}
-                className={`border-r border-b border-gray-800 p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
+                className={`border-b border-gray-800 p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] ${
                   !isCurrentMonth ? 'bg-gray-50' : ''
-                } ${isToday ? 'bg-blue-50' : ''}`}
+                } ${isToday ? 'bg-blue-50' : ''} ${!isLastColumn ? 'border-r' : ''}`}
               >
                 <div className={`text-xs sm:text-sm font-semibold mb-0.5 sm:mb-1 ${!isCurrentMonth ? 'text-gray-400' : 'text-gray-900'}`}>
                   {date.getDate()}
@@ -1186,9 +1261,15 @@ export function AppointmentCalendarCustom({
       {selectedAppointment && (
         <AppointmentCard
           appointment={selectedAppointment}
-          onClose={() => setSelectedAppointment(null)}
+          onClose={() => {
+            setSelectedAppointment(null);
+            setIsEditing(false);
+          }}
           stylists={stylists}
           onEventClick={onEventClick}
+          isEditing={true}
+          setIsEditing={setIsEditing}
+          onUpdateAppointment={onUpdateAppointment}
         />
       )}
     </div>

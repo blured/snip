@@ -10,7 +10,7 @@ import {
   useCalendarSettings,
   CalendarSettingsButton,
 } from '@/components/appointments/calendar-settings-modal';
-import { useAppointments } from '@/hooks/use-appointments';
+import { useAppointments, useUpdateAppointment } from '@/hooks/use-appointments';
 import { useStylists } from '@/hooks/use-stylists';
 import type { Appointment } from '@/types';
 import toast from 'react-hot-toast';
@@ -21,6 +21,7 @@ export default function StylistSchedulePage() {
   const { data: appointments, isLoading, error } = useAppointments();
   const { data: stylists } = useStylists();
   const { settings, saveSettings } = useCalendarSettings();
+  const updateAppointment = useUpdateAppointment();
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
   const [showSettings, setShowSettings] = useState(false);
@@ -80,6 +81,7 @@ export default function StylistSchedulePage() {
             toast.error('Please contact reception to reschedule');
           }}
           onStylistFilterChange={() => {}}
+          onUpdateAppointment={async (id, data) => await updateAppointment.mutateAsync({ id, data })}
         />
       )}
 

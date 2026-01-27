@@ -92,6 +92,7 @@ export default function SchedulePage() {
           onStylistFilterChange={setStylistFilter}
           onAppointmentCreate={handleAppointmentCreate}
           onSettingsClick={() => setShowSettings(true)}
+          onUpdateAppointment={async (id, data) => await updateAppointment.mutateAsync({ id, data })}
         />
       )}
 

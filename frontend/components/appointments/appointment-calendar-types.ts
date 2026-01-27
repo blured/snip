@@ -16,4 +16,5 @@ export interface AppointmentCalendarProps {
   onStylistFilterChange?: (stylistId: string) => void;
   onAppointmentCreate?: (data: { startTime: Date; endTime: Date; stylistId?: string }) => void;
   onSettingsClick?: () => void;
+  onUpdateAppointment?: (id: string, data: any) => Promise<any>;
 }
